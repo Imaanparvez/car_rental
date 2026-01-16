@@ -1,9 +1,7 @@
 import streamlit as st
 from pymongo import MongoClient
 
-uri = st.secrets["mongo"]["mongo_uri"]
-
-client = MongoClient(uri)
+client = MongoClient(st.secrets["mongo_uri"])
 db = client["car_rental"]
 
 users_col = db["users"]
