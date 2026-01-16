@@ -111,7 +111,7 @@ if st.sidebar.button("🚪 Logout"):
 # ------------------------------------------------------------
 if st.session_state["page"] == "home":
 
-    set_background("assets\123.jpg")
+    set_background("assets/123.jpg")
 
     st.markdown(
         """
@@ -204,4 +204,5 @@ elif st.session_state["page"] == "book":
             car_id=selected_car["_id"]
         )
         st.success("✅ Booking recorded successfully")
+
 
