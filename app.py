@@ -6,6 +6,9 @@ from interactions import log_booking_interaction
 import base64
 import os
 
+# NEW IMPORT FOR SEED BUTTON
+from seed_data import seed_cars
+
 # ------------------------------------------------------------
 # PAGE CONFIG
 # ------------------------------------------------------------
@@ -91,6 +94,14 @@ if st.sidebar.button("🏠 Home"):
 if st.sidebar.button("📅 Book Car"):
     st.session_state["page"] = "book"
 
+# ------------------------------------------------------------
+# ⭐ ADMIN BUTTON: ADD INITIAL CARS (NO DUPLICATES)
+# ------------------------------------------------------------
+if st.session_state["user"]["email"] == "imaanparvez1@gmail.com":
+    if st.sidebar.button("⚙️ Add Initial Cars"):
+        inserted = seed_cars()
+        st.sidebar.success(f"Added {inserted} new cars")
+
 if st.sidebar.button("🚪 Logout"):
     st.session_state["user"] = None
     st.rerun()
@@ -119,7 +130,7 @@ if st.session_state["page"] == "home":
     )
 
 # ------------------------------------------------------------
-# BOOK CAR PAGE (ATTRIBUTES ADDED)
+# BOOK CAR PAGE
 # ------------------------------------------------------------
 elif st.session_state["page"] == "book":
 
@@ -153,7 +164,7 @@ elif st.session_state["page"] == "book":
         if image_path and os.path.exists(image_path):
             st.image(image_path, width=160)
 
-    # ---------- CAR ATTRIBUTES (NEW) ----------
+    # ---------- CAR ATTRIBUTES ----------
     st.markdown("### 🚗 Car Details")
 
     colA, colB, colC = st.columns(3)
@@ -184,7 +195,7 @@ elif st.session_state["page"] == "book":
     total_days = max((return_date - pickup_date).days, 1)
     total_cost = total_days * selected_car["price"]
 
-    st.markdown(f"##  Total Cost: ₹{total_cost}")
+    st.markdown(f"## Total Cost: ₹{total_cost}")
 
     # ---------- CONFIRM BOOKING ----------
     if st.button("Confirm Booking"):
@@ -193,7 +204,3 @@ elif st.session_state["page"] == "book":
             car_id=selected_car["_id"]
         )
         st.success("✅ Booking recorded successfully")
-
-# ------------------------------------------------------------
-# END OF FILE
-# ------------------------------------------------------------
