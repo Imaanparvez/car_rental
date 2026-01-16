@@ -1,11 +1,7 @@
 from db import cars_col
 
-def seed_cars_func():
-    cars_col.delete_many({})
-
+def seed_cars():
     cars = [
-
-        # ----------- SEDANS -----------
         {
             "brand": "Honda",
             "model": "City",
@@ -43,7 +39,7 @@ def seed_cars_func():
             "image": "assets/car_images/slavia.jpg"
         },
 
-        # ----------- SUVs -----------
+        # SUVs
         {
             "brand": "Hyundai",
             "model": "Creta",
@@ -81,7 +77,7 @@ def seed_cars_func():
             "image": "assets/car_images/xuv700.jpg"
         },
 
-        # ----------- HATCHBACKS -----------
+        # Hatchbacks
         {
             "brand": "Maruti Suzuki",
             "model": "Baleno",
@@ -119,7 +115,7 @@ def seed_cars_func():
             "image": "assets/car_images/altroz.jpg"
         },
 
-        # ----------- SMALL CARS -----------
+        # Small Cars
         {
             "brand": "Maruti Suzuki",
             "model": "Alto K10",
@@ -158,5 +154,15 @@ def seed_cars_func():
         }
     ]
 
-    cars_col.insert_many(cars)
-    return True
+    inserted_count = 0
+    for car in cars:
+        exists = cars_col.find_one({
+            "brand": car["brand"],
+            "model": car["model"]
+        })
+
+        if not exists:
+            cars_col.insert_one(car)
+            inserted_count += 1
+
+    return inserted_count
