@@ -160,14 +160,6 @@ BACKEND LOGIC SUMMARY
 4. Rank cars by similarity score
 5. Return top-N cars as JSON
 
---------------------------------------------------
-VIVA / PANEL EXPLANATION
---------------------------------------------------
-
-"The frontend sends user preferences as a JSON payload.
-The backend applies content-based filtering using TF-IDF
-and cosine similarity, applies numeric constraints, and
-returns ranked recommendations in JSON format."
 
 --------------------------------------------------
 END OF FILE
