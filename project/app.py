@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, session, url_for
 from datetime import date, timedelta
+from bson import ObjectId
 from auth import login_user, register_user
 from cars import get_all_cars
 from interactions import log_booking_interaction
@@ -15,10 +16,10 @@ app.secret_key = os.environ.get("SECRET_KEY", "fallbacksecret")  # Needed for se
 # --------------------------
 @app.route("/")
 def home():
-    if "user" not in session:
+    if "user_id" not in session:
         return redirect("/login")
 
-    return render_template("home.html", user=session["user"])
+    return render_template("home.html", user_name=session.get("user_name"))
 
 
 # --------------------------
@@ -33,7 +34,11 @@ def login():
         user = login_user(email, password)
 
         if user:
-            session["user"] = user
+            # FIX: do not store full Mongo document in session
+            session["user_id"] = str(user["_id"])
+            session["user_name"] = user["name"]
+            session["user_email"] = user["email"]
+
             return redirect("/")
         else:
             return render_template("login.html", error="Invalid credentials")
@@ -74,7 +79,7 @@ def logout():
 # --------------------------
 @app.route("/book", methods=["GET", "POST"])
 def book():
-    if "user" not in session:
+    if "user_id" not in session:
         return redirect("/login")
 
     cars = get_all_cars()
@@ -82,9 +87,12 @@ def book():
     if request.method == "POST":
         car_id = request.form["car_id"]
 
+        # Convert car_id string to ObjectId
+        car_id = ObjectId(car_id)
+
         log_booking_interaction(
-            user_id=session["user"]["_id"],
-            car_id=car_id
+            user_id=session["user_id"],  # string, safe
+            car_id=str(car_id)          # convert to string to store safely
         )
 
         return render_template("book.html", cars=cars, success="Booking confirmed!")
@@ -97,7 +105,7 @@ def book():
 # --------------------------
 @app.route("/seed")
 def seed():
-    if "user" not in session or session["user"]["email"] != "imaanparvez1@gmail.com":
+    if "user_email" not in session or session["user_email"] != "imaanparvez1@gmail.com":
         return "Unauthorized", 403
 
     count = seed_cars()
