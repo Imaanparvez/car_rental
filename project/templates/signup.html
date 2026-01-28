@@ -1,36 +1,45 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>Sign Up</h2>
+<div class="col-md-6 mx-auto">
 
-{% if error %}
-<div class="alert alert-danger">{{ error }}</div>
-{% endif %}
+    <h2 class="mb-4">Create an Account</h2>
 
-<form method="POST">
-    <div class="mb-3">
-        <label>Full Name</label>
-        <input name="name" class="form-control" required>
-    </div>
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
 
-    <div class="mb-3">
-        <label>Email</label>
-        <input name="email" type="email" class="form-control" required>
-    </div>
+    <form method="POST" class="p-4 border rounded bg-white shadow-sm">
 
-    <div class="mb-3">
-        <label>Phone</label>
-        <input name="phone" class="form-control" required>
-    </div>
+        <div class="mb-3">
+            <label class="form-label"><strong>Full Name</strong></label>
+            <input name="name" class="form-control" required placeholder="Enter your full name">
+        </div>
 
-    <div class="mb-3">
-        <label>Password</label>
-        <input name="password" type="password" class="form-control" required>
-    </div>
+        <div class="mb-3">
+            <label class="form-label"><strong>Email</strong></label>
+            <input name="email" type="email" class="form-control" required placeholder="Enter your email">
+        </div>
 
-    <button class="btn btn-dark">Create Account</button>
-    <a href="/login" class="btn btn-link">Back to Login</a>
-</form>
+        <div class="mb-3">
+            <label class="form-label"><strong>Phone</strong></label>
+            <input name="phone" class="form-control" required placeholder="Enter your phone number">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label"><strong>Password</strong></label>
+            <input name="password" type="password" class="form-control" required placeholder="Create a password">
+        </div>
+
+        <button class="btn btn-dark w-100 mb-3">Create Account</button>
+
+        <p class="text-center">
+            Already have an account?
+            <a href="/login">Login</a>
+        </p>
+
+    </form>
+
+</div>
 
 {% endblock %}
-
