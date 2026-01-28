@@ -1,1 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Login</h2>
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<form method="POST">
+    <div class="mb-3">
+        <label>Email</label>
+        <input type="email" name="email" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label>Password</label>
+        <input type="password" name="password" class="form-control" required>
+    </div>
+
+    <button class="btn btn-dark">Login</button>
+    <a href="/signup" class="btn btn-link">Sign Up</a>
+</form>
+
+{% endblock %}
 
