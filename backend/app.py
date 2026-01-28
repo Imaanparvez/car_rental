@@ -34,7 +34,13 @@ def api_login():
         if not user:
             return jsonify({"error": "Invalid credentials"}), 401
 
+        # Convert ObjectId
         user["_id"] = str(user["_id"])
+
+        # Remove password (bytes cannot be JSON serialized)
+        if "password" in user:
+            del user["password"]
+
         return jsonify({"user": user}), 200
 
     except Exception as e:
