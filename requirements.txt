@@ -3,3 +3,5 @@ pymongo[srv]
 pandas
 bcrypt
 python-dotenv
+flask
+gunicorn
