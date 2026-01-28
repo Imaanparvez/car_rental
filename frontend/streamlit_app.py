@@ -4,7 +4,6 @@ import requests
 import os
 from datetime import date, timedelta
 import base64
-st.write("DEBUG BACKEND_URL =", os.environ.get("BACKEND_URL"))
 API_URL = os.environ.get("BACKEND_URL")
 
 st.set_page_config(page_title="AI Powered Car Rental System", layout="wide")
@@ -159,6 +158,7 @@ else:
     elif page == "Logout":
         st.session_state["user"] = None
         st.rerun()
+
 
 
 
