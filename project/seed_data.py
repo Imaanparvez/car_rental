@@ -12,7 +12,7 @@ def seed_cars():
             "mileage": "18 km/l",
             "engine_capacity": "1498 cc",
             "seating_capacity": 5,
-            "image": "assets/car_images/honda_city.jpg"
+            "image": "static/images/honda_city.jpg"
         },
         {
             "brand": "Hyundai",
@@ -24,7 +24,7 @@ def seed_cars():
             "mileage": "20 km/l",
             "engine_capacity": "1497 cc",
             "seating_capacity": 5,
-            "image": "assets/car_images/verna.jpg"
+            "image": "static/images/verna.jpg"
         },
         {
             "brand": "Skoda",
@@ -36,7 +36,7 @@ def seed_cars():
             "mileage": "19 km/l",
             "engine_capacity": "1498 cc",
             "seating_capacity": 5,
-            "image": "assets/car_images/slavia.jpg"
+            "image": "static/images/slavia.jpg"
         },
 
         # SUVs
@@ -50,7 +50,7 @@ def seed_cars():
             "mileage": "17 km/l",
             "engine_capacity": "1497 cc",
             "seating_capacity": 5,
-            "image": "assets/car_images/creta.jpg"
+            "image": "static/images/creta.jpg"
         },
         {
             "brand": "Kia",
@@ -62,7 +62,7 @@ def seed_cars():
             "mileage": "16 km/l",
             "engine_capacity": "1497 cc",
             "seating_capacity": 5,
-            "image": "assets/car_images/seltos.jpg"
+            "image": "static/images/seltos.jpg"
         },
         {
             "brand": "Mahindra",
@@ -74,7 +74,7 @@ def seed_cars():
             "mileage": "15 km/l",
             "engine_capacity": "1999 cc",
             "seating_capacity": 7,
-            "image": "assets/car_images/xuv700.jpg"
+            "image": "static/images/xuv700.jpg"
         },
 
         # Hatchbacks
@@ -88,7 +88,7 @@ def seed_cars():
             "mileage": "22 km/l",
             "engine_capacity": "1197 cc",
             "seating_capacity": 5,
-            "image": "assets/car_images/baleno.jpg"
+            "image": "static/images/baleno.jpg"
         },
         {
             "brand": "Hyundai",
@@ -100,7 +100,7 @@ def seed_cars():
             "mileage": "20 km/l",
             "engine_capacity": "1197 cc",
             "seating_capacity": 5,
-            "image": "assets/car_images/i20.jpg"
+            "image": "static/images/i20.jpg"
         },
         {
             "brand": "Tata",
@@ -112,7 +112,7 @@ def seed_cars():
             "mileage": "23 km/l",
             "engine_capacity": "1199 cc",
             "seating_capacity": 5,
-            "image": "assets/car_images/altroz.jpg"
+            "image": "static/images/altroz.jpg"
         },
 
         # Small Cars
@@ -126,7 +126,7 @@ def seed_cars():
             "mileage": "24 km/l",
             "engine_capacity": "998 cc",
             "seating_capacity": 5,
-            "image": "assets/car_images/alto_k10.jpg"
+            "image": "static/images/alto_k10.jpg"
         },
         {
             "brand": "Maruti Suzuki",
@@ -138,7 +138,7 @@ def seed_cars():
             "mileage": "25 km/l",
             "engine_capacity": "998 cc",
             "seating_capacity": 5,
-            "image": "assets/car_images/spresso.jpg"
+            "image": "static/images/spresso.jpg"
         },
         {
             "brand": "Renault",
@@ -150,18 +150,19 @@ def seed_cars():
             "mileage": "22 km/l",
             "engine_capacity": "999 cc",
             "seating_capacity": 5,
-            "image": "assets/car_images/kwid.jpg"
+            "image": "static/images/kwid.jpg"
         }
     ]
 
     inserted_count = 0
+
     for car in cars:
-        exists = cars_col.find_one({
+        existing = cars_col.find_one({
             "brand": car["brand"],
             "model": car["model"]
         })
 
-        if not exists:
+        if not existing:
             cars_col.insert_one(car)
             inserted_count += 1
 
