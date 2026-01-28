@@ -1,3 +1,4 @@
+st.write("DEBUG BACKEND_URL =", os.environ.get("BACKEND_URL"))
 import streamlit as st
 import requests
 import os
@@ -158,6 +159,7 @@ else:
     elif page == "Logout":
         st.session_state["user"] = None
         st.rerun()
+
 
 
 
