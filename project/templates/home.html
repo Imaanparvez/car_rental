@@ -1,1 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>AI Powered Car Rental System</h2>
+
+<p class="lead">
+    Smart. Fast. Reliable.<br>
+    Book your perfect ride in seconds.
+</p>
+
+<a href="/book" class="btn btn-primary btn-lg">Book a Car</a>
+
+{% if user.email == "imaanparvez1@gmail.com" %}
+<hr>
+<a href="/seed" class="btn btn-warning">Admin: Add Initial Cars</a>
+{% endif %}
+
+{% endblock %}
 
