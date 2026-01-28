@@ -1,31 +1,37 @@
 import streamlit as st
 import requests
 import os
-from datetime import date, datetime
+from datetime import date, timedelta
 import base64
 
-# ------------------------------
+# ------------------------------------------------------------
 # CONFIG
-# ------------------------------
+# ------------------------------------------------------------
 BACKEND_URL = os.environ.get("BACKEND_URL")
-
 if not BACKEND_URL:
-    st.error("BACKEND_URL not found in environment variables.")
+    st.error("BACKEND_URL environment variable is missing!")
     st.stop()
 
 st.set_page_config(page_title="Car Rental System", layout="wide")
 
+# ------------------------------------------------------------
+# SESSION STATE
+# ------------------------------------------------------------
 if "user" not in st.session_state:
     st.session_state["user"] = None
 
+if "page" not in st.session_state:
+    st.session_state["page"] = "login"
 
-# ---------------------------------------------------
+
+# ------------------------------------------------------------
 # BACKGROUND IMAGE
-# ---------------------------------------------------
+# ------------------------------------------------------------
 def set_background(image_path):
     try:
         with open(image_path, "rb") as f:
-            encoded = base64.b64encode(f.read()).decode()
+            data = f.read()
+        encoded = base64.b64encode(data).decode()
         st.markdown(
             f"""
             <style>
@@ -41,174 +47,138 @@ def set_background(image_path):
         pass  # Ignore if missing
 
 
-# ---------------------------------------------------
-# NAV BAR
-# ---------------------------------------------------
-def nav_bar():
-    st.markdown(
-        """
-        <style>
-        .nav-btn { margin-right: 20px; font-size:18px; }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-    
-    cols = st.columns([4,1,1])
-
-    with cols[1]:
-        if st.button("Home"):
-            st.session_state["page"] = "home"
-
-    if st.session_state["user"]:
-        with cols[2]:
-            if st.button("Logout"):
-                st.session_state["user"] = None
-                st.session_state["page"] = "login"
-
-
-# ---------------------------------------------------
+# ------------------------------------------------------------
 # LOGIN SCREEN
-# ---------------------------------------------------
+# ------------------------------------------------------------
 def login_screen():
-    st.title("Login")
+    st.title("🔐 Login")
 
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        r = requests.post(
-            f"{BACKEND_URL}/api/login",
-            json={"email": email, "password": password}
-        )
-
         try:
-            data = r.json()
-        except:
-            st.error("Backend not responding. Check BACKEND_URL.")
-            return
+            r = requests.post(f"{BACKEND_URL}/api/login",
+                              json={"email": email, "password": password})
+            if r.status_code == 200:
+                st.session_state["user"] = r.json()["user"]
+                st.session_state["page"] = "home"
+                st.rerun()
+            else:
+                st.error("Invalid credentials")
+        except Exception as e:
+            st.error(f"Error connecting to backend: {e}")
 
-        if "user" in data:
-            st.session_state["user"] = data["user"]
-            st.session_state["page"] = "home"
-            st.success("Logged in successfully!")
-        else:
-            st.error("Invalid credentials")
+    st.write("Don't have an account?")
+    if st.button("Go to Sign Up"):
+        st.session_state["page"] = "signup"
+        st.rerun()
 
 
-# ---------------------------------------------------
+# ------------------------------------------------------------
 # SIGNUP SCREEN
-# ---------------------------------------------------
+# ------------------------------------------------------------
 def signup_screen():
-    st.title("Create Account")
+    st.title("📝 Sign Up")
 
     name = st.text_input("Full Name")
     email = st.text_input("Email")
     phone = st.text_input("Phone")
     password = st.text_input("Password", type="password")
 
-    if st.button("Sign Up"):
-        r = requests.post(
-            f"{BACKEND_URL}/api/signup",
-            json={"name": name, "email": email, "phone": phone, "password": password}
-        )
-
+    if st.button("Create Account"):
         try:
+            r = requests.post(f"{BACKEND_URL}/api/signup",
+                              json={"name": name, "email": email, "phone": phone, "password": password})
             data = r.json()
-        except:
-            st.error("Backend error")
-            return
 
-        if data.get("success"):
-            st.success("Account created! Go to Login.")
-        else:
-            st.error("User already exists")
+            if data.get("success"):
+                st.success("Account created successfully! Please Login.")
+            else:
+                st.error("User already exists")
+        except Exception as e:
+            st.error(f"Error connecting to backend: {e}")
+
+    if st.button("Back to Login"):
+        st.session_state["page"] = "login"
+        st.rerun()
 
 
-# ---------------------------------------------------
-# CAR LISTING + BOOKING
-# ---------------------------------------------------
+# ------------------------------------------------------------
+# HOME SCREEN
+# ------------------------------------------------------------
 def home_screen():
+    user = st.session_state["user"]
     set_background("assets/123.jpg")
 
-    st.title("Available Cars")
+    st.title("🚗 AI Powered Car Rental System")
+    st.write(f"Welcome, **{user['name']}**")
 
-    # Fetch cars
-    r = requests.get(f"{BACKEND_URL}/api/cars")
+    if st.button("Book a Car"):
+        st.session_state["page"] = "book"
+        st.rerun()
+
+
+# ------------------------------------------------------------
+# BOOKING SCREEN
+# ------------------------------------------------------------
+def book_screen():
+    st.title("📅 Book a Car")
 
     try:
+        r = requests.get(f"{BACKEND_URL}/api/cars")
         cars = r.json()
     except:
-        st.error("Error loading cars from backend.")
+        st.error("Error fetching cars from backend.")
         return
 
-    # Car DISPLAY CARDS
-    cols = st.columns(3)
+    car_names = [
+        f"{c['brand']} {c['model']} ({c['body_type']})"
+        for c in cars
+    ]
 
-    for i, car in enumerate(cars):
-        with cols[i % 3]:
-            # FIX IMAGE PATH
-            img_path = "assets/" + car["image"].split("assets/")[-1]
+    selected_label = st.selectbox("Select Car", car_names)
 
-            st.image(img_path, use_column_width=True)
+    car = next(c for c in cars if
+               f"{c['brand']} {c['model']} ({c['body_type']})" == selected_label)
 
-            st.subheader(f"{car['brand']} {car['model']}")
-            st.write(f"**Type:** {car['body_type']}")
-            st.write(f"**Fuel:** {car['fuel_type']}")
-            st.write(f"**Transmission:** {car['transmission']}")
-            st.write(f"**Mileage:** {car['mileage']}")
-            st.write(f"**Engine:** {car['engine_capacity']}")
-            st.write(f"**Seats:** {car['seating_capacity']}")
+    # car image
+    if os.path.exists(car["image"]):
+        st.image(car["image"], width=250)
 
-            # DATE PICKERS
-            pickup = st.date_input(
-                "Pickup Date",
-                min_value=date.today(),
-                key=f"pickup_{i}"
-            )
-            dropoff = st.date_input(
-                "Dropoff Date",
-                min_value=date.today(),
-                key=f"dropoff_{i}"
-            )
+    st.subheader("Car Details")
+    st.write(f"**Brand:** {car['brand']}")
+    st.write(f"**Model:** {car['model']}")
+    st.write(f"**Price:** ₹{car['price']} / day")
 
-            # Calculate Price
-            if dropoff >= pickup:
-                days = (dropoff - pickup).days + 1
-                total_price = car["price"] * days
-                st.write(f"### Total Price: ₹{total_price}")
-            else:
-                st.warning("Dropoff date must be after pickup date.")
-                continue
+    # Dates
+    start_date = st.date_input("Pickup Date", date.today())
+    end_date = st.date_input("Return Date", date.today() + timedelta(days=1))
 
-            if st.button(f"Book {car['model']}", key=f"book_{i}"):
-                user = st.session_state["user"]
-                if not user:
-                    st.error("Login first!")
-                    return
+    days = max((end_date - start_date).days, 1)
+    st.write(f"### Total Cost: ₹{days * car['price']}")
 
-                r = requests.post(
-                    f"{BACKEND_URL}/api/book",
-                    json={"user_id": user["_id"], "car_id": car["_id"]}
-                )
-
-                if r.json().get("success"):
-                    st.success("Booking Confirmed!")
-                else:
-                    st.error("Booking failed!")
+    if st.button("Confirm Booking"):
+        try:
+            r = requests.post(f"{BACKEND_URL}/api/book",
+                              json={"user_id": st.session_state["user"]["_id"],
+                                    "car_id": car["_id"]})
+            if r.json().get("success"):
+                st.success("Booking Confirmed!")
+        except Exception as e:
+            st.error(f"Error: {e}")
 
 
-# ---------------------------------------------------
-# PAGE HANDLING
-# ---------------------------------------------------
-if "page" not in st.session_state:
-    st.session_state["page"] = "login"
-
-nav_bar()
-
-if st.session_state["page"] == "login":
-    login_screen()
-elif st.session_state["page"] == "signup":
-    signup_screen()
+# ------------------------------------------------------------
+# ROUTER
+# ------------------------------------------------------------
+if st.session_state["user"] is None:
+    if st.session_state["page"] == "signup":
+        signup_screen()
+    else:
+        login_screen()
 else:
-    home_screen()
+    if st.session_state["page"] == "book":
+        book_screen()
+    else:
+        home_screen()
