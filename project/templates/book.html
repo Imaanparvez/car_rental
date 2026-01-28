@@ -1,27 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>Book a Car</h2>
+<h2 class="mb-4">Book a Car</h2>
 
 {% if success %}
 <div class="alert alert-success">{{ success }}</div>
 {% endif %}
 
-<form method="POST">
+<form method="POST" class="p-3 border rounded bg-white">
 
     <div class="mb-3">
-        <label>Select Car</label>
+        <label class="form-label"><strong>Select Car</strong></label>
         <select name="car_id" class="form-control" required>
             {% for car in cars %}
-            <option value="{{ car._id }}">
-                {{ car.brand }} {{ car.model }} ({{ car.body_type }})
+            <option value="{{ car['_id'] }}">
+                {{ car['brand'] }} {{ car['model'] }} ({{ car['body_type'] }})
             </option>
             {% endfor %}
         </select>
     </div>
 
-    <button class="btn btn-success">Confirm Booking</button>
+    <button class="btn btn-success mt-2">Confirm Booking</button>
 </form>
 
 {% endblock %}
-
