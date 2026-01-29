@@ -126,87 +126,105 @@ def login_page():
 
 
 # ------------------------------------------------------------
-# PREFERENCES PAGE (Image Tiles)
+# CLICKABLE IMAGE TILE FUNCTION (BULLET-PROOF FIX)
 # ------------------------------------------------------------
-def preferences_page():
-    st.title("🎛 Choose Your Preferences")
+def image_tile(image_path, label, key, options):
+    try:
+        img64 = base64.b64encode(open(image_path, "rb").read()).decode()
+    except:
+        img64 = ""
 
-    # CSS
-    st.markdown("""
+    div_id = f"tile_{key}"
+
+    st.markdown(
+        f"""
         <style>
-            .tile-img {
+            #{div_id} {{
+                position: relative;
+                width: 100%;
+            }}
+            #{div_id} img {{
                 width: 100%;
                 height: 130px;
                 border-radius: 15px;
                 object-fit: cover;
-                cursor: pointer;
                 transition: 0.2s;
-            }
-            .tile-img:hover {
+            }}
+            #{div_id} img:hover {{
                 transform: scale(1.06);
                 opacity: 0.9;
-            }
+            }}
+            #{div_id} > div > button {{
+                position: absolute !important;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 130px;
+                opacity: 0;
+                border: none;
+                outline: none;
+                cursor: pointer;
+                z-index: 10;
+            }}
         </style>
-    """, unsafe_allow_html=True)
 
-    # Clickable Tile Function
-    def image_tile(image_path, label, key, options):
+        <div id="{div_id}">
+            <img src="data:image/jpeg;base64,{img64}">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-        try:
-            img64 = base64.b64encode(open(image_path, "rb").read()).decode()
-        except:
-            img64 = ""
+    # Invisible button OVER the image
+    clicked = st.button(" ", key=f"btn_{key}")
 
-        container = st.container()
+    if clicked:
+        st.session_state[f"open_{key}"] = not st.session_state.get(f"open_{key}", False)
 
-        container.markdown(
-            f"""
-            <img src='data:image/jpeg;base64,{img64}' class='tile-img'>
-            <h5 style='text-align:center'>{label}</h5>
-            """,
-            unsafe_allow_html=True
+    # Dropdown appears
+    if st.session_state.get(f"open_{key}", False):
+        choice = st.selectbox(
+            f"Select {label}",
+            options,
+            key=f"sel_{key}"
         )
+        st.session_state["filters"][key] = choice
 
-        # invisible button that covers tile
-        clicked = container.button(
-            " ", key=f"btn_{key}", use_container_width=True
-        )
 
-        if clicked:
-            st.session_state[f"open_{key}"] = not st.session_state.get(f"open_{key}", False)
-
-        if st.session_state.get(f"open_{key}", False):
-            st.session_state["filters"][key] = st.selectbox(
-                f"Select {label}", options, key=f"sel_{key}"
-            )
+# ------------------------------------------------------------
+# PREFERENCES PAGE
+# ------------------------------------------------------------
+def preferences_page():
+    st.title("🎛 Choose Your Preferences")
 
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         image_tile("assets/brand.jpeg", "Brand", "Brand",
-                   ["Toyota", "Honda", "Hyundai", "BMW"])
+                   ["All", "Toyota", "Honda", "Hyundai", "BMW"])
 
     with col2:
         image_tile("assets/fuel.jpeg", "Fuel Type", "Fuel_Type",
-                   ["Petrol", "Diesel", "Electric"])
+                   ["All", "Petrol", "Diesel", "Electric"])
 
     with col3:
         image_tile("assets/type.jpeg", "Body Type", "Body_Type",
-                   ["SUV", "Sedan", "Hatchback"])
+                   ["All", "SUV", "Sedan", "Hatchback"])
 
     with col4:
         image_tile("assets/transmission.jpeg", "Transmission", "Transmission",
-                   ["Manual", "Automatic"])
+                   ["All", "Manual", "Automatic"])
 
     st.write("---")
 
     if st.button("📌 Recommend"):
-        # Send ONLY 4 attributes — NO mileage, NO cc
+        f = st.session_state["filters"]
+
         payload = {
-            "Brand": st.session_state["filters"]["Brand"],
-            "Fuel_Type": st.session_state["filters"]["Fuel_Type"],
-            "Body_Type": st.session_state["filters"]["Body_Type"],
-            "Transmission": st.session_state["filters"]["Transmission"],
+            "Brand": None if f["Brand"] == "All" else f["Brand"],
+            "Fuel_Type": None if f["Fuel_Type"] == "All" else f["Fuel_Type"],
+            "Body_Type": None if f["Body_Type"] == "All" else f["Body_Type"],
+            "Transmission": None if f["Transmission"] == "All" else f["Transmission"],
         }
 
         rec = safe_post(f"{BACKEND_URL}/recommend", payload)
@@ -215,7 +233,6 @@ def preferences_page():
             st.session_state["recommended_cars"] = [
                 car for car in rec if car.get("Brand") and car.get("Model")
             ]
-
             st.session_state["page"] = "book"
             st.rerun()
 
@@ -236,35 +253,31 @@ def book_page():
     dropdown = []
     rec_pairs = set()
 
-    # Recommended first
+    # Recommended cars first
     for car in st.session_state["recommended_cars"]:
         brand = car.get("Brand")
         model = car.get("Model")
-        if not brand or not model:
-            continue
+        if brand and model:
+            dropdown.append(f"{brand} {model} (For You)")
+            rec_pairs.add((brand, model))
 
-        dropdown.append(f"{brand} {model} (For You)")
-        rec_pairs.add((brand, model))
-
-    # Then all cars (no divider)
+    # All cars
     for c in cars:
         if (c["brand"], c["model"]) not in rec_pairs:
             dropdown.append(f"{c['brand']} {c['model']}")
 
     default = 0
-
-    # Auto-select last selected
     if st.session_state["selected_car"]:
         sc = st.session_state["selected_car"]
         brand, model = sc.get("Brand"), sc.get("Model")
         if brand and model:
-            lbl = f"{brand} {model} (For You)"
-            if lbl in dropdown:
-                default = dropdown.index(lbl)
+            label = f"{brand} {model} (For You)"
+            if label in dropdown:
+                default = dropdown.index(label)
 
     chosen = st.selectbox("Select Car", dropdown, index=default)
 
-    # Map dropdown → car object
+    # Map selected
     if "(For You)" in chosen:
         raw = chosen.replace(" (For You)", "")
         brand, model = raw.split(" ", 1)
@@ -285,21 +298,22 @@ def book_page():
         drop = st.date_input("Return Date", date.today() + timedelta(days=1))
 
     days = max((drop - pickup).days, 1)
-
     st.write(f"### 💰 Total Cost: ₹{days * price}")
 
     if st.button("Confirm Booking"):
         r = safe_post(
             f"{BACKEND_URL}/api/book",
-            {"user_id": st.session_state["user"]["_id"],
-             "car_id": selcar.get("_id", selcar.get("Car_ID"))}
+            {
+                "user_id": st.session_state["user"]["_id"],
+                "car_id": selcar.get("_id", selcar.get("Car_ID"))
+            }
         )
         if r and r.get("success"):
             st.success("Booking confirmed 🎉")
 
 
 # ------------------------------------------------------------
-# ROUTER
+# ROUTING
 # ------------------------------------------------------------
 if st.session_state["user"] is None:
     login_page()
