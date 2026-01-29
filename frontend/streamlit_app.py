@@ -67,6 +67,17 @@ def safe_get(url):
 
 
 # ------------------------------------------------------------
+# UTILITY: Load image as Base64
+# ------------------------------------------------------------
+def load_image_base64(path):
+    try:
+        with open(path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    except:
+        return ""
+
+
+# ------------------------------------------------------------
 # SIDEBAR
 # ------------------------------------------------------------
 def render_sidebar():
@@ -143,36 +154,40 @@ def preferences_page():
         </style>
     """, unsafe_allow_html=True)
 
+    # Load base64 images
+    img_brand = load_image_base64("assets/brand.jpeg")
+    img_fuel = load_image_base64("assets/fuel.jpeg")
+    img_type = load_image_base64("assets/type.jpeg")
+    img_trans = load_image_base64("assets/transmission.jpeg")
+
     col1, col2, col3, col4 = st.columns(4)
 
-    # FIXED-SIZE IMAGES USING HTML
     with col1:
-        st.markdown("<img src='assets/brand.jpeg' class='tile-img'>", unsafe_allow_html=True)
+        st.markdown(f"<img src='data:image/jpeg;base64,{img_brand}' class='tile-img'>", unsafe_allow_html=True)
         st.session_state["filters"]["Brand"] = st.selectbox(
             "Brand", ["Toyota", "Honda", "Hyundai", "BMW"], key="brand_dd"
         )
 
     with col2:
-        st.markdown("<img src='assets/fuel.jpeg' class='tile-img'>", unsafe_allow_html=True)
+        st.markdown(f"<img src='data:image/jpeg;base64,{img_fuel}' class='tile-img'>", unsafe_allow_html=True)
         st.session_state["filters"]["Fuel_Type"] = st.selectbox(
             "Fuel Type", ["Petrol", "Diesel", "Electric"], key="fuel_dd"
         )
 
     with col3:
-        st.markdown("<img src='assets/type.jpeg' class='tile-img'>", unsafe_allow_html=True)
+        st.markdown(f"<img src='data:image/jpeg;base64,{img_type}' class='tile-img'>", unsafe_allow_html=True)
         st.session_state["filters"]["Body_Type"] = st.selectbox(
             "Body Type", ["SUV", "Sedan", "Hatchback"], key="body_dd"
         )
 
     with col4:
-        st.markdown("<img src='assets/transmission.jpeg' class='tile-img'>", unsafe_allow_html=True)
+        st.markdown(f"<img src='data:image/jpeg;base64,{img_trans}' class='tile-img'>", unsafe_allow_html=True)
         st.session_state["filters"]["Transmission"] = st.selectbox(
             "Transmission", ["Manual", "Automatic"], key="trans_dd"
         )
 
     st.write("---")
 
-    # SINGLE MESSAGE VALIDATION
     if st.button("📌 Recommend"):
         f = st.session_state["filters"]
         missing = [key.replace("_", " ") for key, val in f.items() if val is None]
@@ -195,7 +210,6 @@ def preferences_page():
             st.session_state["recommended_cars"] = [
                 car for car in rec if car.get("Brand") and car.get("Model")
             ]
-
             st.session_state["page"] = "book"
             st.rerun()
 
