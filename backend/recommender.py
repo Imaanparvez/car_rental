@@ -1,18 +1,52 @@
 import pandas as pd
 import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+# -------------------------------------------------
+# LOAD DATA
+# -------------------------------------------------
+df = pd.read_csv("cars.csv")  # <-- make sure path is correct
+
+# Clean data
+df.fillna("", inplace=True)
+
+df["Mileage"] = pd.to_numeric(df["Mileage"], errors="coerce").fillna(0)
+df["Engine_CC"] = pd.to_numeric(df["Engine_CC"], errors="coerce").fillna(0)
+df["Year"] = pd.to_numeric(df["Year"], errors="coerce").fillna(0)
+
+# -------------------------------------------------
+# BUILD TF-IDF ONCE (🔥 THIS WAS MISSING)
+# -------------------------------------------------
+df["combined_text"] = (
+    df["Brand"] + " " +
+    df["Fuel_Type"] + " " +
+    df["Transmission"] + " " +
+    df["Body_Type"]
+)
+
+tfidf = TfidfVectorizer(stop_words="english")
+car_tfidf_matrix = tfidf.fit_transform(df["combined_text"])
+
+# -------------------------------------------------
+# OPTIONAL NUMERIC FILTERS
+# -------------------------------------------------
+def apply_numeric_filters(dataframe, prefs):
+    filtered = dataframe.copy()
+
+    if "min_mileage" in prefs:
+        filtered = filtered[filtered["Mileage"] >= prefs["min_mileage"]]
+
+    if "max_engine_cc" in prefs:
+        filtered = filtered[filtered["Engine_CC"] <= prefs["max_engine_cc"]]
+
+    return filtered
+
+
+# -------------------------------------------------
+# RECOMMENDATION FUNCTION
+# -------------------------------------------------
 def recommend_cbf(prefs, top_n=5):
-    """
-    Content-Based Filtering recommendation
-
-    prefs: dict from frontend
-    top_n: number of cars to recommend
-    returns: list of dicts (JSON serializable)
-    """
-
-   
- 
     user_text = " ".join([
         str(prefs.get("Brand", "")),
         str(prefs.get("Fuel_Type", "")),
@@ -21,63 +55,34 @@ def recommend_cbf(prefs, top_n=5):
     ]).strip()
 
     if not user_text:
-        user_text = "car" 
+        user_text = "car"
 
-   
     user_vector = tfidf.transform([user_text])
     scores = cosine_similarity(user_vector, car_tfidf_matrix)[0]
 
-   
     df_copy = df.copy()
     df_copy["similarity_score"] = scores.astype(float)
 
-   
-    try:
-        df_filtered = apply_numeric_filters(df_copy, prefs)
-    except Exception:
-        df_filtered = df_copy
+    df_filtered = apply_numeric_filters(df_copy, prefs)
 
-   
     if df_filtered.empty:
         df_filtered = df_copy
 
-  
     sorted_df = df_filtered.sort_values(
         by="similarity_score",
         ascending=False
     )
 
-    # Remove exact duplicates
-    sorted_df = sorted_df.drop_duplicates(
-        subset=["Brand", "Model"]
-    )
+    sorted_df = sorted_df.drop_duplicates(subset=["Brand", "Model"])
 
-    # Brand diversity
-    diverse = sorted_df.drop_duplicates(subset=["Brand"])
+    result = sorted_df.head(top_n)
 
-    if len(diverse) < top_n:
-        remaining = sorted_df.loc[
-            ~sorted_df.index.isin(diverse.index)
-        ]
-        diverse = pd.concat([diverse, remaining])
+    result = result.replace([np.inf, -np.inf], 0)
+    result = result.fillna("")
 
-    result = diverse.head(top_n)
-
-  
-    output_cols = [
+    return result[[
         "Car_ID", "Brand", "Model",
         "Fuel_Type", "Transmission",
         "Body_Type", "Mileage",
         "Engine_CC", "similarity_score"
-    ]
-
-   
-    output_cols = [c for c in output_cols if c in result.columns]
-
-    result = result[output_cols]
-
-   
-    result = result.replace([np.inf, -np.inf], 0)
-    result = result.fillna("")
-
-    return result.to_dict(orient="records")
+    ]].to_dict(orient="records")
