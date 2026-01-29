@@ -3,7 +3,7 @@ from flask_cors import CORS
 from auth import login_user, register_user
 from cars import get_all_cars
 from interactions import log_booking_interaction
-from recommendations import content_based_recommendations
+from recommender import recommend_cbf
 from bson import ObjectId
 import logging
 
@@ -79,19 +79,16 @@ def api_cars():
 # -----------------------------------------------------
 # RECOMMENDATIONS
 # -----------------------------------------------------
-@app.route("/api/recommend", methods=["POST"])
-def api_recommend():
-    try:
-        user_id = request.json["user_id"]
-        result = content_based_recommendations(ObjectId(user_id))
+@app.route("/recommend", methods=["POST"])
+def recommend():
+    data = request.get_json()
 
-        for r in result:
-            r["_id"] = str(r["_id"])
+    required = ["Brand", "Fuel_Type", "Transmission", "Body_Type"]
+    if not all(k in data for k in required):
+        return jsonify({"error": "Missing fields"}), 400
 
-        return jsonify(result), 200
-    except Exception as e:
-        print("RECOMMEND ERROR:", e)
-        return jsonify({"error": str(e)}), 500
+    results = recommend_cbf(data)
+    return jsonify(results)
 
 
 # -----------------------------------------------------

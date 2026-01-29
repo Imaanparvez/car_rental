@@ -23,7 +23,7 @@ Car_ID,Brand,Model,Year,Fuel_Type,Transmission,Mileage,Engine_CC,Body_Type
 22,Toyota,Fortuner,2022.0,Diesel,Manual,29.7,2000.0,SUV
 23,Toyota,Camry,2023.0,Electric,Automatic,12.2,1200.0,SUV
 24,Mahindra,XUV700,2016.0,Electric,Automatic,21.3,1500.0,Convertible
-25,Toyota,N/A,2020.0,Electric,Automatic,16.5,2000.0,SUV
+25,Toyota,unknown,2020.0,Electric,Automatic,16.5,2000.0,SUV
 26,Tata Motors,Punch,2024.0,Petrol,Manual,29.2,1200.0,Sedan
 27,Maruti Suzuki,Ertiga,2015.0,Electric,Automatic,15.6,1000.0,Convertible
 28,Mahindra,XUV700,2019.0,Electric,Manual,13.8,2500.0,Sedan
@@ -99,16 +99,16 @@ Car_ID,Brand,Model,Year,Fuel_Type,Transmission,Mileage,Engine_CC,Body_Type
 98,Maruti Suzuki,Baleno,2020.0,Diesel,Manual,26.0,1200.0,Hatchback
 99,Hyundai,Verna,2017.0,Diesel,Automatic,16.6,1000.0,Hatchback
 100,Hyundai,Creta,2020.0,Electric,Automatic,14.2,1000.0,Sedan
-101,Toyota,Innova,2020.0,Diesel,N/A,29.9,1800.0,Hatchback
+101,Toyota,Innova,2020.0,Diesel,unknown,29.9,1800.0,Hatchback
 102,Maruti Suzuki,Ertiga,2015.0,Diesel,Automatic,22.9,1000.0,Convertible
 103,Skoda,Kushaq,2019.0,Petrol,Automatic,20.7,800.0,Coupe
 104,Tata Motors,Tiago,2019.0,Diesel,Automatic,10.5,2000.0,Convertible
 105,Mahindra,Thar,2021.0,Petrol,Manual,21.7,2000.0,Hatchback
-106,Tata Motors,N/A,2015.0,Petrol,Manual,28.8,1800.0,Hatchback
+106,Tata Motors,unknown,2015.0,Petrol,Manual,28.8,1800.0,Hatchback
 107,Toyota,Urban Cruiser,2018.0,Electric,Automatic,11.8,1500.0,Hatchback
 108,Skoda,Kushaq,2018.0,Electric,Automatic,16.0,2000.0,Coupe
 109,Tata Motors,Nexon,2020.0,Diesel,Automatic,25.1,1000.0,SUV
-110,Kia,Carens,2022.0,N/A,Manual,23.5,2500.0,Sedan
+110,Kia,Carens,2022.0,unknown,Manual,23.5,2500.0,Sedan
 111,Honda,Amaze,2024.0,Diesel,Manual,18.1,800.0,SUV
 112,Honda,Amaze,2018.0,Diesel,Manual,17.8,800.0,SUV
 113,Maruti Suzuki,Baleno,2018.0,Electric,Manual,24.4,1200.0,Convertible
@@ -173,7 +173,7 @@ Car_ID,Brand,Model,Year,Fuel_Type,Transmission,Mileage,Engine_CC,Body_Type
 172,Renault,Kwid,2018.0,CNG,Manual,10.4,1000.0,Convertible
 173,Mahindra,Scorpio,2015.0,Electric,Manual,26.0,1500.0,SUV
 174,Mahindra,Scorpio,2016.0,Electric,Manual,16.3,2500.0,Coupe
-175,Maruti Suzuki,Ertiga,2016.0,CNG,N/A,19.5,1200.0,Sedan
+175,Maruti Suzuki,Ertiga,2016.0,CNG,unknown,19.5,1200.0,Sedan
 176,Hyundai,i10,2019.0,CNG,Manual,12.1,1500.0,Coupe
 177,Skoda,Superb,2015.0,CNG,Manual,22.7,1000.0,Sedan
 178,Volkswagen,Vento,2022.0,Petrol,Automatic,11.1,2500.0,Convertible
@@ -370,7 +370,7 @@ Car_ID,Brand,Model,Year,Fuel_Type,Transmission,Mileage,Engine_CC,Body_Type
 369,Tata Motors,Punch,2018.0,CNG,Manual,21.0,2000.0,SUV
 370,Volkswagen,Taigun,2024.0,Electric,Automatic,10.8,1000.0,Sedan
 371,Maruti Suzuki,Dzire,2015.0,Electric,Automatic,15.9,800.0,SUV
-372,Renault,Kiger,2015.0,N/A,Manual,12.7,1200.0,Convertible
+372,Renault,Kiger,2015.0,unknown,Manual,12.7,1200.0,Convertible
 373,Kia,Sonet,2017.0,Electric,Automatic,11.4,2000.0,Hatchback
 374,Honda,City,2018.0,Petrol,Manual,22.7,800.0,Hatchback
 375,Honda,Civic,2018.0,Electric,Automatic,13.0,2500.0,Sedan
@@ -535,7 +535,7 @@ Car_ID,Brand,Model,Year,Fuel_Type,Transmission,Mileage,Engine_CC,Body_Type
 534,Volkswagen,Tiguan,2017.0,Petrol,Automatic,14.9,1800.0,Convertible
 535,Maruti Suzuki,Swift,2021.0,Diesel,Manual,17.4,800.0,SUV
 536,Tata Motors,Altroz,2020.0,Petrol,Manual,14.7,1800.0,SUV
-537,N/A,Sonet,2022.0,Diesel,Manual,28.4,2500.0,Convertible
+537,unknown,Sonet,2022.0,Diesel,Manual,28.4,2500.0,Convertible
 538,Renault,Duster,2024.0,Electric,Automatic,23.8,2500.0,Coupe
 539,Honda,WR-V,2018.0,CNG,Manual,12.7,1500.0,Convertible
 540,Skoda,Rapid,2017.0,CNG,Manual,16.2,1800.0,SUV
@@ -704,7 +704,7 @@ Car_ID,Brand,Model,Year,Fuel_Type,Transmission,Mileage,Engine_CC,Body_Type
 703,Maruti Suzuki,Baleno,2019.0,Electric,Automatic,23.7,2000.0,Convertible
 704,Hyundai,i20,2018.0,Electric,Automatic,10.9,1200.0,Sedan
 705,Kia,Sonet,2023.0,Diesel,Automatic,17.6,1500.0,Coupe
-706,Maruti Suzuki,Ertiga,2019.0,N/A,Automatic,16.7,2000.0,Convertible
+706,Maruti Suzuki,Ertiga,2019.0,unknown,Automatic,16.7,2000.0,Convertible
 707,Honda,City,2019.0,CNG,Manual,11.6,1800.0,Coupe
 708,Maruti Suzuki,WagonR,2022.0,Petrol,Automatic,27.4,1500.0,Convertible
 709,Honda,Jazz,2018.0,Petrol,Manual,19.8,1000.0,Coupe
@@ -1041,7 +1041,7 @@ Car_ID,Brand,Model,Year,Fuel_Type,Transmission,Mileage,Engine_CC,Body_Type
 1040,Kia,Carens,2024.0,Electric,Manual,11.9,1500.0,SUV
 1041,Kia,EV6,2017.0,Electric,Automatic,22.6,2500.0,Hatchback
 1042,Kia,Carens,2023.0,Electric,Automatic,24.2,2000.0,Coupe
-1043,Volkswagen,Vento,2020.0,Electric,N/A,15.6,1200.0,SUV
+1043,Volkswagen,Vento,2020.0,Electric,unknown,15.6,1200.0,SUV
 1044,Toyota,Urban Cruiser,2024.0,Diesel,Manual,25.2,1500.0,Sedan
 1045,Mahindra,Scorpio,2021.0,CNG,Automatic,25.3,1800.0,SUV
 1046,Maruti Suzuki,WagonR,2024.0,Electric,Automatic,19.5,800.0,Hatchback
@@ -1219,7 +1219,7 @@ Car_ID,Brand,Model,Year,Fuel_Type,Transmission,Mileage,Engine_CC,Body_Type
 1218,Tata Motors,Tiago,2021.0,CNG,Automatic,14.5,800.0,SUV
 1219,Tata Motors,Nexon,2015.0,Diesel,Automatic,19.7,1000.0,Sedan
 1220,Renault,Kiger,2015.0,CNG,Automatic,16.7,800.0,Sedan
-1221,N/A,Nexon,2020.0,Petrol,Manual,21.1,2500.0,Convertible
+1221,unknown,Nexon,2020.0,Petrol,Manual,21.1,2500.0,Convertible
 1222,Toyota,Urban Cruiser,2016.0,Petrol,Automatic,16.7,1200.0,Convertible
 1223,Tata Motors,Tiago,2022.0,Electric,Manual,24.3,800.0,Convertible
 1224,Toyota,Camry,2021.0,Diesel,Automatic,19.7,1200.0,Convertible
@@ -1415,7 +1415,7 @@ Car_ID,Brand,Model,Year,Fuel_Type,Transmission,Mileage,Engine_CC,Body_Type
 1414,Skoda,Rapid,2017.0,Petrol,Manual,27.4,800.0,Convertible
 1415,Honda,Jazz,2015.0,Electric,Manual,14.7,1000.0,Coupe
 1416,Kia,Seltos,2022.0,Electric,Manual,19.0,2000.0,Convertible
-1417,Hyundai,Verna,2024.0,N/A,Automatic,24.4,2500.0,SUV
+1417,Hyundai,Verna,2024.0,unknown,Automatic,24.4,2500.0,SUV
 1418,Tata Motors,Nexon,2018.0,Electric,Automatic,28.4,1000.0,Hatchback
 1419,Tata Motors,Nexon,2016.0,Diesel,Manual,29.2,1500.0,Coupe
 1420,Honda,Jazz,2017.0,Petrol,Automatic,10.9,2000.0,Convertible
@@ -1566,7 +1566,7 @@ Car_ID,Brand,Model,Year,Fuel_Type,Transmission,Mileage,Engine_CC,Body_Type
 1565,Honda,City,2024.0,Electric,Manual,16.5,1000.0,Coupe
 1566,Kia,EV6,2017.0,Diesel,Manual,19.6,2000.0,SUV
 1567,Mahindra,XUV300,2021.0,CNG,Automatic,14.4,1500.0,Coupe
-1568,Skoda,Superb,2022.0,Electric,N/A,12.3,2500.0,Hatchback
+1568,Skoda,Superb,2022.0,Electric,unknown,12.3,2500.0,Hatchback
 1569,Volkswagen,Tiguan,2018.0,Petrol,Manual,22.2,1200.0,Convertible
 1570,Kia,Sonet,2023.0,Electric,Manual,26.3,2500.0,Convertible
 1571,Honda,WR-V,2023.0,Electric,Automatic,12.4,1000.0,Coupe
@@ -4865,7 +4865,7 @@ Car_ID,Brand,Model,Year,Fuel_Type,Transmission,Mileage,Engine_CC,Body_Type
 4864,Hyundai,Venue,2016.0,Electric,Manual,29.8,1000.0,SUV
 4865,Renault,Lodgy,2018.0,Electric,Manual,28.0,1200.0,Convertible
 4866,Kia,Seltos,2020.0,Diesel,Manual,26.5,2000.0,Sedan
-4867,Honda,Jazz,2017.0,N/A,Manual,11.4,1200.0,Convertible
+4867,Honda,Jazz,2017.0,unknown,Manual,11.4,1200.0,Convertible
 4868,Hyundai,Verna,2019.0,Diesel,Automatic,22.6,1500.0,Sedan
 4869,Hyundai,Verna,2020.0,Electric,Manual,24.5,1200.0,Hatchback
 4870,Tata Motors,Harrier,2018.0,Electric,Automatic,16.8,1200.0,SUV
@@ -5613,7 +5613,7 @@ Car_ID,Brand,Model,Year,Fuel_Type,Transmission,Mileage,Engine_CC,Body_Type
 5612,Renault,Kiger,2020.0,Diesel,Automatic,22.6,1500.0,Hatchback
 5613,Hyundai,Creta,2021.0,Electric,Manual,11.0,800.0,Coupe
 5614,Mahindra,Scorpio,2016.0,Petrol,Manual,10.5,2000.0,Coupe
-5615,Mahindra,Thar,2024.0,Petrol,Manual,19.0,2500.0,N/A
+5615,Mahindra,Thar,2024.0,Petrol,Manual,19.0,2500.0,unknown
 5616,Kia,Sonet,2024.0,CNG,Automatic,12.7,2000.0,Sedan
 5617,Volkswagen,Taigun,2018.0,Electric,Manual,29.8,1500.0,Hatchback
 5618,Hyundai,i20,2019.0,Electric,Manual,22.5,2500.0,SUV
@@ -7579,7 +7579,7 @@ Car_ID,Brand,Model,Year,Fuel_Type,Transmission,Mileage,Engine_CC,Body_Type
 7578,Maruti Suzuki,Ertiga,2017.0,Diesel,Manual,18.2,2500.0,Coupe
 7579,Mahindra,Bolero,2018.0,Diesel,Automatic,16.4,2500.0,Convertible
 7580,Tata Motors,Harrier,2023.0,Petrol,Automatic,23.8,800.0,Hatchback
-7581,Toyota,Fortuner,2024.0,N/A,Automatic,21.5,2000.0,Sedan
+7581,Toyota,Fortuner,2024.0,unknown,Automatic,21.5,2000.0,Sedan
 7582,Maruti Suzuki,WagonR,2017.0,Electric,Automatic,26.5,2500.0,Sedan
 7583,Maruti Suzuki,Swift,2018.0,Electric,Automatic,12.7,1000.0,Hatchback
 7584,Kia,Carnival,2015.0,Petrol,Automatic,13.9,800.0,Coupe
@@ -7613,7 +7613,7 @@ Car_ID,Brand,Model,Year,Fuel_Type,Transmission,Mileage,Engine_CC,Body_Type
 7612,Tata Motors,Tiago,2020.0,Petrol,Manual,14.4,800.0,SUV
 7613,Tata Motors,Punch,2023.0,Petrol,Manual,20.5,1500.0,Sedan
 7614,Toyota,Innova,2023.0,Diesel,Automatic,24.6,1000.0,Sedan
-7615,Maruti Suzuki,N/A,2021.0,Electric,Manual,21.8,2500.0,Sedan
+7615,Maruti Suzuki,unknown,2021.0,Electric,Manual,21.8,2500.0,Sedan
 7616,Kia,Seltos,2016.0,Diesel,Manual,15.0,2500.0,Convertible
 7617,Toyota,Glanza,2022.0,Diesel,Automatic,17.3,1000.0,Convertible
 7618,Mahindra,Bolero,2017.0,Petrol,Manual,11.0,1200.0,Sedan
@@ -9206,10 +9206,10 @@ Car_ID,Brand,Model,Year,Fuel_Type,Transmission,Mileage,Engine_CC,Body_Type
 9205,Volkswagen,Taigun,2018.0,Electric,Automatic,13.2,800.0,Sedan
 9206,Kia,Carnival,2017.0,Electric,Automatic,27.5,2500.0,Sedan
 9207,Maruti Suzuki,Dzire,2017.0,Diesel,Manual,11.1,1800.0,Convertible
-9208,N/A,Carnival,2016.0,Diesel,Automatic,17.1,1500.0,Coupe
+9208,unknown,Carnival,2016.0,Diesel,Automatic,17.1,1500.0,Coupe
 9209,Tata Motors,Tiago,2020.0,Electric,Automatic,16.3,2000.0,Sedan
 9210,Honda,City,2024.0,Petrol,Automatic,29.1,1000.0,Coupe
-9211,Renault,Triber,2019.0,Electric,N/A,28.5,2500.0,Hatchback
+9211,Renault,Triber,2019.0,Electric,unknown,28.5,2500.0,Hatchback
 9212,Kia,Sonet,2019.0,Electric,Automatic,29.6,800.0,Convertible
 9213,Honda,City,2024.0,Petrol,Manual,12.1,1500.0,Sedan
 9214,Honda,WR-V,2016.0,Electric,Manual,16.6,1800.0,SUV
@@ -9675,7 +9675,7 @@ Car_ID,Brand,Model,Year,Fuel_Type,Transmission,Mileage,Engine_CC,Body_Type
 9674,Kia,Seltos,2022.0,CNG,Manual,21.1,2500.0,Convertible
 9675,Honda,City,2018.0,CNG,Automatic,25.0,1000.0,Hatchback
 9676,Tata Motors,Altroz,2017.0,CNG,Automatic,22.6,1200.0,Convertible
-9677,Kia,Carnival,2022.0,Electric,N/A,25.0,1000.0,SUV
+9677,Kia,Carnival,2022.0,Electric,unknown,25.0,1000.0,SUV
 9678,Mahindra,XUV700,2016.0,Diesel,Automatic,14.0,1200.0,SUV
 9679,Maruti Suzuki,WagonR,2023.0,Diesel,Automatic,10.9,2500.0,Coupe
 9680,Toyota,Innova,2018.0,Petrol,Manual,12.9,2000.0,SUV
