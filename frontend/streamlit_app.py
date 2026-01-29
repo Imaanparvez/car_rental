@@ -126,7 +126,7 @@ def login_page():
 
 
 # ------------------------------------------------------------
-# PREFERENCES PAGE (Image Tiles)
+# PREFERENCES PAGE (Image Tiles) — UPDATED VALIDATION ONLY
 # ------------------------------------------------------------
 def preferences_page():
     st.title("🎛 Choose Your Preferences")
@@ -149,64 +149,52 @@ def preferences_page():
         </style>
     """, unsafe_allow_html=True)
 
-    # Clickable Tile Function
-    def image_tile(image_path, label, key, options):
-
-        try:
-            img64 = base64.b64encode(open(image_path, "rb").read()).decode()
-        except:
-            img64 = ""
-
-        container = st.container()
-
-        container.markdown(
-            f"""
-            <img src='data:image/jpeg;base64,{img64}' class='tile-img'>
-            <h5 style='text-align:center'>{label}</h5>
-            """,
-            unsafe_allow_html=True
-        )
-
-        # invisible button that covers tile
-        clicked = container.button(
-            " ", key=f"btn_{key}", use_container_width=True
-        )
-
-        if clicked:
-            st.session_state[f"open_{key}"] = not st.session_state.get(f"open_{key}", False)
-
-        if st.session_state.get(f"open_{key}", False):
-            st.session_state["filters"][key] = st.selectbox(
-                f"Select {label}", options, key=f"sel_{key}"
-            )
-
     col1, col2, col3, col4 = st.columns(4)
 
+    # ⭐ ALWAYS VISIBLE DROPDOWNS (NO BUTTON) ⭐
+
     with col1:
-        image_tile("assets/brand.jpeg", "Brand", "Brand",
-                   ["Toyota", "Honda", "Hyundai", "BMW"])
+        st.image("assets/brand.jpeg", use_column_width=True)
+        st.session_state["filters"]["Brand"] = st.selectbox(
+            "Brand", ["Toyota", "Honda", "Hyundai", "BMW"], key="brand_dd"
+        )
 
     with col2:
-        image_tile("assets/fuel.jpeg", "Fuel Type", "Fuel_Type",
-                   ["Petrol", "Diesel", "Electric"])
+        st.image("assets/fuel.jpeg", use_column_width=True)
+        st.session_state["filters"]["Fuel_Type"] = st.selectbox(
+            "Fuel Type", ["Petrol", "Diesel", "Electric"], key="fuel_dd"
+        )
 
     with col3:
-        image_tile("assets/type.jpeg", "Body Type", "Body_Type",
-                   ["SUV", "Sedan", "Hatchback"])
+        st.image("assets/type.jpeg", use_column_width=True)
+        st.session_state["filters"]["Body_Type"] = st.selectbox(
+            "Body Type", ["SUV", "Sedan", "Hatchback"], key="body_dd"
+        )
 
     with col4:
-        image_tile("assets/transmission.jpeg", "Transmission", "Transmission",
-                   ["Manual", "Automatic"])
+        st.image("assets/transmission.jpeg", use_column_width=True)
+        st.session_state["filters"]["Transmission"] = st.selectbox(
+            "Transmission", ["Manual", "Automatic"], key="trans_dd"
+        )
 
     st.write("---")
 
+    # ⭐ SINGLE-LINE VALIDATION MESSAGE (NEW) ⭐
     if st.button("📌 Recommend"):
-        # Send ONLY 4 attributes — NO mileage, NO cc
+        f = st.session_state["filters"]
+        missing = [key.replace("_", " ") for key, val in f.items() if val is None]
+
+        if missing:
+            missing_text = ", ".join(missing)
+            st.warning(f"⚠ Please select {missing_text}")
+            return
+
+        # Build payload
         payload = {
-            "Brand": st.session_state["filters"]["Brand"],
-            "Fuel_Type": st.session_state["filters"]["Fuel_Type"],
-            "Body_Type": st.session_state["filters"]["Body_Type"],
-            "Transmission": st.session_state["filters"]["Transmission"],
+            "Brand": f["Brand"],
+            "Fuel_Type": f["Fuel_Type"],
+            "Body_Type": f["Body_Type"],
+            "Transmission": f["Transmission"],
         }
 
         rec = safe_post(f"{BACKEND_URL}/recommend", payload)
@@ -221,7 +209,7 @@ def preferences_page():
 
 
 # ------------------------------------------------------------
-# BOOK CAR PAGE
+# BOOK CAR PAGE (UNCHANGED)
 # ------------------------------------------------------------
 def book_page():
     st.title("🚗 Book Your Car")
@@ -253,7 +241,6 @@ def book_page():
 
     default = 0
 
-    # Auto-select last selected
     if st.session_state["selected_car"]:
         sc = st.session_state["selected_car"]
         brand, model = sc.get("Brand"), sc.get("Model")
@@ -264,16 +251,19 @@ def book_page():
 
     chosen = st.selectbox("Select Car", dropdown, index=default)
 
-    # Map dropdown → car object
     if "(For You)" in chosen:
         raw = chosen.replace(" (For You)", "")
         brand, model = raw.split(" ", 1)
-        selcar = next(c for c in st.session_state["recommended_cars"]
-                      if c["Brand"] == brand and c["Model"] == model)
+        selcar = next(
+            c for c in st.session_state["recommended_cars"]
+            if c["Brand"] == brand and c["Model"] == model
+        )
         price = 2000
     else:
-        selcar = next(c for c in cars
-                      if f"{c['brand']} {c['model']}" == chosen)
+        selcar = next(
+            c for c in cars
+            if f"{c['brand']} {c['model']}" == chosen
+        )
         price = selcar["price"]
 
     st.session_state["selected_car"] = selcar
@@ -285,7 +275,6 @@ def book_page():
         drop = st.date_input("Return Date", date.today() + timedelta(days=1))
 
     days = max((drop - pickup).days, 1)
-
     st.write(f"### 💰 Total Cost: ₹{days * price}")
 
     if st.button("Confirm Booking"):
