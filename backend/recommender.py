@@ -3,21 +3,17 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# -------------------------------------------------
-# LOAD DATA
-# -------------------------------------------------
-df = pd.read_csv("cars.csv")  # <-- make sure path is correct
 
-# Clean data
+df = pd.read_csv("../backend/dataset/car_rental_cbf.csv")  
+
+
 df.fillna("", inplace=True)
 
 df["Mileage"] = pd.to_numeric(df["Mileage"], errors="coerce").fillna(0)
 df["Engine_CC"] = pd.to_numeric(df["Engine_CC"], errors="coerce").fillna(0)
 df["Year"] = pd.to_numeric(df["Year"], errors="coerce").fillna(0)
 
-# -------------------------------------------------
-# BUILD TF-IDF ONCE (🔥 THIS WAS MISSING)
-# -------------------------------------------------
+
 df["combined_text"] = (
     df["Brand"] + " " +
     df["Fuel_Type"] + " " +
@@ -28,9 +24,6 @@ df["combined_text"] = (
 tfidf = TfidfVectorizer(stop_words="english")
 car_tfidf_matrix = tfidf.fit_transform(df["combined_text"])
 
-# -------------------------------------------------
-# OPTIONAL NUMERIC FILTERS
-# -------------------------------------------------
 def apply_numeric_filters(dataframe, prefs):
     filtered = dataframe.copy()
 
@@ -43,9 +36,6 @@ def apply_numeric_filters(dataframe, prefs):
     return filtered
 
 
-# -------------------------------------------------
-# RECOMMENDATION FUNCTION
-# -------------------------------------------------
 def recommend_cbf(prefs, top_n=5):
     user_text = " ".join([
         str(prefs.get("Brand", "")),
