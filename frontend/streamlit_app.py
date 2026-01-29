@@ -78,6 +78,33 @@ def load_image_base64(path):
 
 
 # ------------------------------------------------------------
+# CONSISTENT TILE RENDERER
+# ------------------------------------------------------------
+def render_tile(image_path):
+    img64 = load_image_base64(image_path)
+    return f"""
+    <div style="
+        width:180px;
+        height:120px;
+        border-radius:12px;
+        overflow:hidden;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        background:#111;
+    ">
+        <img src="data:image/jpeg;base64,{img64}"
+            style="
+                width:100%;
+                height:100%;
+                object-fit:cover;
+            "
+        >
+    </div>
+    """
+
+
+# ------------------------------------------------------------
 # SIDEBAR
 # ------------------------------------------------------------
 def render_sidebar():
@@ -142,46 +169,28 @@ def login_page():
 def preferences_page():
     st.title("🎛 Choose Your Preferences")
 
-    # CSS for fixed image size
-    st.markdown("""
-        <style>
-            .tile-img {
-                width: 180px !important;
-                height: 120px !important;
-                border-radius: 12px;
-                object-fit: cover;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-
-    # Load base64 images
-    img_brand = load_image_base64("assets/brand.jpeg")
-    img_fuel = load_image_base64("assets/fuel.jpeg")
-    img_type = load_image_base64("assets/type.jpeg")
-    img_trans = load_image_base64("assets/transmission.jpeg")
-
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.markdown(f"<img src='data:image/jpeg;base64,{img_brand}' class='tile-img'>", unsafe_allow_html=True)
+        st.markdown(render_tile("assets/brand.jpeg"), unsafe_allow_html=True)
         st.session_state["filters"]["Brand"] = st.selectbox(
             "Brand", ["Toyota", "Honda", "Hyundai", "BMW"], key="brand_dd"
         )
 
     with col2:
-        st.markdown(f"<img src='data:image/jpeg;base64,{img_fuel}' class='tile-img'>", unsafe_allow_html=True)
+        st.markdown(render_tile("assets/fuel.jpeg"), unsafe_allow_html=True)
         st.session_state["filters"]["Fuel_Type"] = st.selectbox(
             "Fuel Type", ["Petrol", "Diesel", "Electric"], key="fuel_dd"
         )
 
     with col3:
-        st.markdown(f"<img src='data:image/jpeg;base64,{img_type}' class='tile-img'>", unsafe_allow_html=True)
+        st.markdown(render_tile("assets/type.jpeg"), unsafe_allow_html=True)
         st.session_state["filters"]["Body_Type"] = st.selectbox(
             "Body Type", ["SUV", "Sedan", "Hatchback"], key="body_dd"
         )
 
     with col4:
-        st.markdown(f"<img src='data:image/jpeg;base64,{img_trans}' class='tile-img'>", unsafe_allow_html=True)
+        st.markdown(render_tile("assets/transmission.jpeg"), unsafe_allow_html=True)
         st.session_state["filters"]["Transmission"] = st.selectbox(
             "Transmission", ["Manual", "Automatic"], key="trans_dd"
         )
@@ -215,7 +224,7 @@ def preferences_page():
 
 
 # ------------------------------------------------------------
-# BOOK CAR PAGE (UNCHANGED)
+# BOOK CAR PAGE (unchanged)
 # ------------------------------------------------------------
 def book_page():
     st.title("🚗 Book Your Car")
@@ -230,20 +239,24 @@ def book_page():
     dropdown = []
     rec_pairs = set()
 
+    # Recommended first
     for car in st.session_state["recommended_cars"]:
         brand = car.get("Brand")
         model = car.get("Model")
         if not brand or not model:
             continue
+
         dropdown.append(f"{brand} {model} (For You)")
         rec_pairs.add((brand, model))
 
+    # All other cars
     for c in cars:
         if (c["brand"], c["model"]) not in rec_pairs:
             dropdown.append(f"{c['brand']} {c['model']}")
 
     default = 0
 
+    # Preserve selection
     if st.session_state["selected_car"]:
         sc = st.session_state["selected_car"]
         brand, model = sc.get("Brand"), sc.get("Model")
@@ -254,6 +267,7 @@ def book_page():
 
     chosen = st.selectbox("Select Car", dropdown, index=default)
 
+    # Map to car
     if "(For You)" in chosen:
         raw = chosen.replace(" (For You)", "")
         brand, model = raw.split(" ", 1)
@@ -274,6 +288,7 @@ def book_page():
         drop = st.date_input("Return Date", date.today() + timedelta(days=1))
 
     days = max((drop - pickup).days, 1)
+
     st.write(f"### 💰 Total Cost: ₹{days * price}")
 
     if st.button("Confirm Booking"):
@@ -293,7 +308,6 @@ if st.session_state["user"] is None:
     login_page()
 else:
     render_sidebar()
-
     if st.session_state["page"] == "preferences":
         preferences_page()
     elif st.session_state["page"] == "book":
