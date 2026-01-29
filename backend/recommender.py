@@ -12,7 +12,8 @@ DATA_PATH = os.path.join(BASE_DIR, "dataset", "car_rental_cbf.csv")
 df = pd.read_csv(DATA_PATH)
 
 # Normalize text
-cat_cols = df.select_dtypes(include="object").columns
+cat_cols = ["Brand", "Fuel_Type", "Transmission", "Body_Type"]
+
 for col in cat_cols:
     df[col] = df[col].str.lower().str.strip()
 
@@ -49,10 +50,13 @@ def recommend_cbf(prefs, top_n=5):
 
     df_filtered = apply_numeric_filters(df_copy, prefs)
 
-    result = df_filtered.sort_values(
-        "similarity_score",
-        ascending=False
-    ).head(top_n)
+    result = (
+    df_filtered
+    .sort_values("similarity_score", ascending=False)
+    .drop_duplicates(subset=["Brand", "Model"])  # ✅ FIX 1
+    .head(top_n)
+    )
+
 
     return result[[
         "Car_ID", "Brand", "Model",
