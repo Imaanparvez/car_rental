@@ -131,46 +131,41 @@ def login_page():
 def preferences_page():
     st.title("🎛 Choose Your Preferences")
 
-    # CSS
+    # CSS for fixed image size
     st.markdown("""
         <style>
             .tile-img {
-                width: 180px;
-                height: 120px;
-                border-radius: 15px;
+                width: 180px !important;
+                height: 120px !important;
+                border-radius: 12px;
                 object-fit: cover;
-                transition: 0.2s;
-            }
-            .tile-img:hover {
-                transform: scale(1.06);
-                opacity: 0.9;
             }
         </style>
     """, unsafe_allow_html=True)
 
     col1, col2, col3, col4 = st.columns(4)
 
-    # ALWAYS visible dropdowns
+    # FIXED-SIZE IMAGES USING HTML
     with col1:
-        st.image("assets/brand.jpeg", width=180)
+        st.markdown("<img src='assets/brand.jpeg' class='tile-img'>", unsafe_allow_html=True)
         st.session_state["filters"]["Brand"] = st.selectbox(
             "Brand", ["Toyota", "Honda", "Hyundai", "BMW"], key="brand_dd"
         )
 
     with col2:
-        st.image("assets/fuel.jpeg", width=180)
+        st.markdown("<img src='assets/fuel.jpeg' class='tile-img'>", unsafe_allow_html=True)
         st.session_state["filters"]["Fuel_Type"] = st.selectbox(
             "Fuel Type", ["Petrol", "Diesel", "Electric"], key="fuel_dd"
         )
 
     with col3:
-        st.image("assets/type.jpeg", width=180)
+        st.markdown("<img src='assets/type.jpeg' class='tile-img'>", unsafe_allow_html=True)
         st.session_state["filters"]["Body_Type"] = st.selectbox(
             "Body Type", ["SUV", "Sedan", "Hatchback"], key="body_dd"
         )
 
     with col4:
-        st.image("assets/transmission.jpeg", width=180)
+        st.markdown("<img src='assets/transmission.jpeg' class='tile-img'>", unsafe_allow_html=True)
         st.session_state["filters"]["Transmission"] = st.selectbox(
             "Transmission", ["Manual", "Automatic"], key="trans_dd"
         )
