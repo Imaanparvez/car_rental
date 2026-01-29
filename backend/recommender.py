@@ -54,7 +54,6 @@ def recommend_cbf(prefs, top_n=5):
     df_copy["similarity_score"] = scores.astype(float)
 
     df_filtered = apply_numeric_filters(df_copy, prefs)
-
     if df_filtered.empty:
         df_filtered = df_copy
 
@@ -62,10 +61,23 @@ def recommend_cbf(prefs, top_n=5):
         by="similarity_score",
         ascending=False
     )
+    seen_brands = set()
+    final_rows = []
 
-    sorted_df = sorted_df.drop_duplicates(subset=["Brand", "Model"])
+    for _, row in sorted_df.iterrows():
+        brand = row["Brand"]
 
-    result = sorted_df.head(top_n)
+        if brand not in seen_brands:
+            seen_brands.add(brand)
+            final_rows.append(row)
+
+        if len(final_rows) == top_n:
+            break
+
+    if not final_rows:
+        return []
+
+    result = pd.DataFrame(final_rows)
 
     result = result.replace([np.inf, -np.inf], 0)
     result = result.fillna("")
@@ -76,3 +88,4 @@ def recommend_cbf(prefs, top_n=5):
         "Body_Type", "Mileage",
         "Engine_CC", "similarity_score"
     ]].to_dict(orient="records")
+
