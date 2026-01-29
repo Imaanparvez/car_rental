@@ -166,12 +166,18 @@ def book_page():
             }
             r = requests.post(f"{BACKEND_URL}/recommend", json=payload)
             st.session_state["recommended_cars"] = r.json()
+            if not st.session_state["recommended_cars"]:
+                st.warning(
+                 "No cars matched your exact filters. "
+                 "Showing closest matches instead."
+                 )
+
 
     # -------------------------------
     # SHOW AI RESULTS
     # -------------------------------
     if "recommended_cars" in st.session_state:
-        st.markdown("### ✅ AI Recommended Cars")
+        st.markdown("### ✅ Recommended Cars")
         for car in st.session_state["recommended_cars"]:
             cols = st.columns([4, 2, 1])
             cols[0].write(f"**{car['Brand']} {car['Model']}**")
