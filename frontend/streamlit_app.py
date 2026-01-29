@@ -126,7 +126,7 @@ def login_page():
 
 
 # ------------------------------------------------------------
-# PREFERENCES PAGE (Image Tiles) — UPDATED VALIDATION ONLY
+# PREFERENCES PAGE (Image Tiles)
 # ------------------------------------------------------------
 def preferences_page():
     st.title("🎛 Choose Your Preferences")
@@ -135,11 +135,10 @@ def preferences_page():
     st.markdown("""
         <style>
             .tile-img {
-                width: 100%;
-                height: 130px;
+                width: 180px;
+                height: 120px;
                 border-radius: 15px;
                 object-fit: cover;
-                cursor: pointer;
                 transition: 0.2s;
             }
             .tile-img:hover {
@@ -151,35 +150,34 @@ def preferences_page():
 
     col1, col2, col3, col4 = st.columns(4)
 
-    # ⭐ ALWAYS VISIBLE DROPDOWNS (NO BUTTON) ⭐
-
+    # ALWAYS visible dropdowns
     with col1:
-        st.image("assets/brand.jpeg", use_column_width=True)
+        st.image("assets/brand.jpeg", width=180)
         st.session_state["filters"]["Brand"] = st.selectbox(
             "Brand", ["Toyota", "Honda", "Hyundai", "BMW"], key="brand_dd"
         )
 
     with col2:
-        st.image("assets/fuel.jpeg", use_column_width=True)
+        st.image("assets/fuel.jpeg", width=180)
         st.session_state["filters"]["Fuel_Type"] = st.selectbox(
             "Fuel Type", ["Petrol", "Diesel", "Electric"], key="fuel_dd"
         )
 
     with col3:
-        st.image("assets/type.jpeg", use_column_width=True)
+        st.image("assets/type.jpeg", width=180)
         st.session_state["filters"]["Body_Type"] = st.selectbox(
             "Body Type", ["SUV", "Sedan", "Hatchback"], key="body_dd"
         )
 
     with col4:
-        st.image("assets/transmission.jpeg", use_column_width=True)
+        st.image("assets/transmission.jpeg", width=180)
         st.session_state["filters"]["Transmission"] = st.selectbox(
             "Transmission", ["Manual", "Automatic"], key="trans_dd"
         )
 
     st.write("---")
 
-    # ⭐ SINGLE-LINE VALIDATION MESSAGE (NEW) ⭐
+    # SINGLE MESSAGE VALIDATION
     if st.button("📌 Recommend"):
         f = st.session_state["filters"]
         missing = [key.replace("_", " ") for key, val in f.items() if val is None]
@@ -189,7 +187,6 @@ def preferences_page():
             st.warning(f"⚠ Please select {missing_text}")
             return
 
-        # Build payload
         payload = {
             "Brand": f["Brand"],
             "Fuel_Type": f["Fuel_Type"],
@@ -224,17 +221,14 @@ def book_page():
     dropdown = []
     rec_pairs = set()
 
-    # Recommended first
     for car in st.session_state["recommended_cars"]:
         brand = car.get("Brand")
         model = car.get("Model")
         if not brand or not model:
             continue
-
         dropdown.append(f"{brand} {model} (For You)")
         rec_pairs.add((brand, model))
 
-    # Then all cars (no divider)
     for c in cars:
         if (c["brand"], c["model"]) not in rec_pairs:
             dropdown.append(f"{c['brand']} {c['model']}")
@@ -254,16 +248,12 @@ def book_page():
     if "(For You)" in chosen:
         raw = chosen.replace(" (For You)", "")
         brand, model = raw.split(" ", 1)
-        selcar = next(
-            c for c in st.session_state["recommended_cars"]
-            if c["Brand"] == brand and c["Model"] == model
-        )
+        selcar = next(c for c in st.session_state["recommended_cars"]
+                      if c["Brand"] == brand and c["Model"] == model)
         price = 2000
     else:
-        selcar = next(
-            c for c in cars
-            if f"{c['brand']} {c['model']}" == chosen
-        )
+        selcar = next(c for c in cars
+                      if f"{c['brand']} {c['model']}" == chosen)
         price = selcar["price"]
 
     st.session_state["selected_car"] = selcar
