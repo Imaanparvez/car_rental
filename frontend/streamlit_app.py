@@ -28,10 +28,10 @@ if "page" not in st.session_state:
 
 if "filters" not in st.session_state:
     st.session_state["filters"] = {
-        "Brand": None,
-        "Fuel_Type": None,
-        "Body_Type": None,
-        "Transmission": None
+        "Brand": "Toyota",
+        "Fuel_Type": "Petrol",
+        "Body_Type": "SUV",
+        "Transmission": "Manual"
     }
 
 if "recommended_cars" not in st.session_state:
@@ -51,6 +51,7 @@ def safe_post(url, payload):
             return r.json()
     except Exception as e:
         st.error(str(e))
+        return None
     st.error(f"Error: {r.text}")
     return None
 
@@ -62,6 +63,7 @@ def safe_get(url):
             return r.json()
     except Exception as e:
         st.error(str(e))
+        return None
     st.error(f"Error: {r.text}")
     return None
 
@@ -100,8 +102,10 @@ def login_page():
         password = st.text_input("Password", type="password")
 
         if st.button("Login"):
-            user = safe_post(f"{BACKEND_URL}/api/login",
-                             {"email": email, "password": password})
+            user = safe_post(
+                f"{BACKEND_URL}/api/login",
+                {"email": email, "password": password}
+            )
             if user and "user" in user:
                 st.session_state["user"] = user["user"]
                 st.session_state["page"] = "preferences"
@@ -117,8 +121,10 @@ def login_page():
         password = st.text_input("Password", type="password", key="signup_pass")
 
         if st.button("Sign Up"):
-            r = safe_post(f"{BACKEND_URL}/api/signup",
-                          {"name": name, "email": email, "phone": phone, "password": password})
+            r = safe_post(
+                f"{BACKEND_URL}/api/signup",
+                {"name": name, "email": email, "phone": phone, "password": password}
+            )
             if r and r.get("success"):
                 st.success("Account created. Login Now!")
             else:
@@ -126,48 +132,62 @@ def login_page():
 
 
 # ------------------------------------------------------------
-# PREFERENCES PAGE (Dropdowns always visible)
+# PREFERENCES PAGE — DROPDOWNS ALWAYS VISIBLE
 # ------------------------------------------------------------
 def preferences_page():
     st.title("🎛 Choose Your Preferences")
 
     c1, c2, c3, c4 = st.columns(4)
 
+    # ---------- BRAND ----------
     with c1:
         st.image("assets/brand.jpeg", use_column_width=True)
         st.session_state["filters"]["Brand"] = st.selectbox(
-            "Select Brand", ["Toyota", "Honda", "Hyundai", "BMW"], key="brand_dd"
+            "Select Brand",
+            ["Toyota", "Honda", "Hyundai", "BMW"],
+            key="brand_dd"
         )
 
+    # ---------- FUEL TYPE ----------
     with c2:
         st.image("assets/fuel.jpeg", use_column_width=True)
         st.session_state["filters"]["Fuel_Type"] = st.selectbox(
-            "Select Fuel Type", ["Petrol", "Diesel", "Electric"], key="fuel_dd"
+            "Select Fuel Type",
+            ["Petrol", "Diesel", "Electric"],
+            key="fuel_dd"
         )
 
+    # ---------- BODY TYPE ----------
     with c3:
         st.image("assets/type.jpeg", use_column_width=True)
         st.session_state["filters"]["Body_Type"] = st.selectbox(
-            "Select Body Type", ["SUV", "Sedan", "Hatchback"], key="body_dd"
+            "Select Body Type",
+            ["SUV", "Sedan", "Hatchback"],
+            key="body_dd"
         )
 
+    # ---------- TRANSMISSION ----------
     with c4:
         st.image("assets/transmission.jpeg", use_column_width=True)
         st.session_state["filters"]["Transmission"] = st.selectbox(
-            "Select Transmission", ["Manual", "Automatic"], key="trans_dd"
+            "Select Transmission",
+            ["Manual", "Automatic"],
+            key="trans_dd"
         )
 
     st.write("---")
 
+    # ---------- VALIDATED RECOMMEND ----------
     if st.button("📌 Recommend"):
-        payload = {
-            "Brand": st.session_state["filters"]["Brand"],
-            "Fuel_Type": st.session_state["filters"]["Fuel_Type"],
-            "Body_Type": st.session_state["filters"]["Body_Type"],
-            "Transmission": st.session_state["filters"]["Transmission"],
-        }
+        f = st.session_state["filters"]
 
-        rec = safe_post(f"{BACKEND_URL}/recommend", payload)
+        # ENSURE NOTHING IS EMPTY (fix 502 crash)
+        for value in f.values():
+            if value is None or value == "":
+                st.error("Please select all preferences before recommending.")
+                return
+
+        rec = safe_post(f"{BACKEND_URL}/recommend", f)
 
         if rec:
             st.session_state["recommended_cars"] = [
@@ -206,28 +226,32 @@ def book_page():
         if (c["brand"], c["model"]) not in rec_pairs:
             dropdown.append(f"{c['brand']} {c['model']}")
 
-    # Pre-select recommended if exists
+    # Default selection
     default = 0
     if st.session_state["selected_car"]:
         sc = st.session_state["selected_car"]
         brand, model = sc.get("Brand"), sc.get("Model")
         if brand and model:
-            lbl = f"{brand} {model} (For You)"
-            if lbl in dropdown:
-                default = dropdown.index(lbl)
+            label = f"{brand} {model} (For You)"
+            if label in dropdown:
+                default = dropdown.index(label)
 
     chosen = st.selectbox("Available Cars", dropdown, index=default)
 
-    # Map to chosen car
+    # Map selected
     if "(For You)" in chosen:
         raw = chosen.replace(" (For You)", "")
         brand, model = raw.split(" ", 1)
-        selcar = next(c for c in st.session_state["recommended_cars"]
-                      if c["Brand"] == brand and c["Model"] == model)
+        selcar = next(
+            c for c in st.session_state["recommended_cars"]
+            if c["Brand"] == brand and c["Model"] == model
+        )
         price = 2000
     else:
-        selcar = next(c for c in cars
-                      if f"{c['brand']} {c['model']}" == chosen)
+        selcar = next(
+            c for c in cars
+            if f"{c['brand']} {c['model']}" == chosen
+        )
         price = selcar["price"]
 
     st.session_state["selected_car"] = selcar
