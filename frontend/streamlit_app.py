@@ -94,6 +94,7 @@ def login_page():
 
     tab1, tab2 = st.tabs(["Login", "Sign Up"])
 
+    # LOGIN
     with tab1:
         email = st.text_input("Email")
         password = st.text_input("Password", type="password")
@@ -105,8 +106,10 @@ def login_page():
                 st.session_state["user"] = user["user"]
                 st.session_state["page"] = "preferences"
                 st.rerun()
-            st.error("Invalid Credentials")
+            else:
+                st.error("Invalid Credentials")
 
+    # SIGNUP
     with tab2:
         name = st.text_input("Name")
         email = st.text_input("Email", key="signup_email")
@@ -123,12 +126,12 @@ def login_page():
 
 
 # ------------------------------------------------------------
-# PREFERENCES PAGE (IMAGE TILE PAGE)
+# PREFERENCES PAGE (Image Tiles)
 # ------------------------------------------------------------
 def preferences_page():
     st.title("🎛 Choose Your Preferences")
 
-    # CSS for clickable tiles
+    # CSS
     st.markdown("""
         <style>
             .tile-img {
@@ -146,22 +149,31 @@ def preferences_page():
         </style>
     """, unsafe_allow_html=True)
 
-    # Image tile function
-    def tile(image_path, label, key, options):
+    # Clickable Tile Function
+    def image_tile(image_path, label, key, options):
+
         try:
             img64 = base64.b64encode(open(image_path, "rb").read()).decode()
         except:
             img64 = ""
 
-        # Click image to open dropdown
-        if st.button(" ", key=f"btn_{key}"):
-            st.session_state[f"open_{key}"] = not st.session_state.get(f"open_{key}", False)
+        container = st.container()
 
-        st.markdown(
-            f"<img src='data:image/jpeg;base64,{img64}' class='tile-img'>"
-            f"<h5 style='text-align:center'>{label}</h5>",
+        container.markdown(
+            f"""
+            <img src='data:image/jpeg;base64,{img64}' class='tile-img'>
+            <h5 style='text-align:center'>{label}</h5>
+            """,
             unsafe_allow_html=True
         )
+
+        # invisible button that covers tile
+        clicked = container.button(
+            " ", key=f"btn_{key}", use_container_width=True
+        )
+
+        if clicked:
+            st.session_state[f"open_{key}"] = not st.session_state.get(f"open_{key}", False)
 
         if st.session_state.get(f"open_{key}", False):
             st.session_state["filters"][key] = st.selectbox(
@@ -171,32 +183,35 @@ def preferences_page():
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        tile("assets/brand.jpeg", "Brand", "Brand",
-             ["Toyota", "Honda", "Hyundai", "BMW"])
+        image_tile("assets/brand.jpeg", "Brand", "Brand",
+                   ["Toyota", "Honda", "Hyundai", "BMW"])
 
     with col2:
-        tile("assets/fuel.jpeg", "Fuel Type", "Fuel_Type",
-             ["Petrol", "Diesel", "Electric"])
+        image_tile("assets/fuel.jpeg", "Fuel Type", "Fuel_Type",
+                   ["Petrol", "Diesel", "Electric"])
 
     with col3:
-        tile("assets/type.jpeg", "Body Type", "Body_Type",
-             ["SUV", "Sedan", "Hatchback"])
+        image_tile("assets/type.jpeg", "Body Type", "Body_Type",
+                   ["SUV", "Sedan", "Hatchback"])
 
     with col4:
-        tile("assets/transmission.jpeg", "Transmission", "Transmission",
-             ["Manual", "Automatic"])
+        image_tile("assets/transmission.jpeg", "Transmission", "Transmission",
+                   ["Manual", "Automatic"])
 
     st.write("---")
 
     if st.button("📌 Recommend"):
-        payload = st.session_state["filters"].copy()
-        payload["min_mileage"] = 10
-        payload["max_engine_cc"] = 4000
+        # Send ONLY 4 attributes — NO mileage, NO cc
+        payload = {
+            "Brand": st.session_state["filters"]["Brand"],
+            "Fuel_Type": st.session_state["filters"]["Fuel_Type"],
+            "Body_Type": st.session_state["filters"]["Body_Type"],
+            "Transmission": st.session_state["filters"]["Transmission"],
+        }
 
         rec = safe_post(f"{BACKEND_URL}/recommend", payload)
 
         if rec:
-            # Clean bad results
             st.session_state["recommended_cars"] = [
                 car for car in rec if car.get("Brand") and car.get("Model")
             ]
@@ -221,7 +236,7 @@ def book_page():
     dropdown = []
     rec_pairs = set()
 
-    # Recommended at top (NO divider)
+    # Recommended first
     for car in st.session_state["recommended_cars"]:
         brand = car.get("Brand")
         model = car.get("Model")
@@ -231,26 +246,25 @@ def book_page():
         dropdown.append(f"{brand} {model} (For You)")
         rec_pairs.add((brand, model))
 
-    # Then all cars
+    # Then all cars (no divider)
     for c in cars:
         if (c["brand"], c["model"]) not in rec_pairs:
             dropdown.append(f"{c['brand']} {c['model']}")
 
     default = 0
 
+    # Auto-select last selected
     if st.session_state["selected_car"]:
         sc = st.session_state["selected_car"]
-        brand = sc.get("Brand")
-        model = sc.get("Model")
-
+        brand, model = sc.get("Brand"), sc.get("Model")
         if brand and model:
-            label = f"{brand} {model} (For You)"
-            if label in dropdown:
-                default = dropdown.index(label)
+            lbl = f"{brand} {model} (For You)"
+            if lbl in dropdown:
+                default = dropdown.index(lbl)
 
     chosen = st.selectbox("Select Car", dropdown, index=default)
 
-    # Map selected car
+    # Map dropdown → car object
     if "(For You)" in chosen:
         raw = chosen.replace(" (For You)", "")
         brand, model = raw.split(" ", 1)
@@ -258,33 +272,30 @@ def book_page():
                       if c["Brand"] == brand and c["Model"] == model)
         price = 2000
     else:
-        selcar = next(c for c in cars if f"{c['brand']} {c['model']}" == chosen)
+        selcar = next(c for c in cars
+                      if f"{c['brand']} {c['model']}" == chosen)
         price = selcar["price"]
 
     st.session_state["selected_car"] = selcar
 
-    # Dates
     col1, col2 = st.columns(2)
     with col1:
-        pickup = st.date_input("Pickup", date.today())
+        pickup = st.date_input("Pickup Date", date.today())
     with col2:
-        drop = st.date_input("Return", date.today() + timedelta(days=1))
+        drop = st.date_input("Return Date", date.today() + timedelta(days=1))
 
     days = max((drop - pickup).days, 1)
-    total = days * price
 
-    st.write(f"### 💰 Total Cost: ₹{total}")
+    st.write(f"### 💰 Total Cost: ₹{days * price}")
 
     if st.button("Confirm Booking"):
         r = safe_post(
             f"{BACKEND_URL}/api/book",
-            {
-                "user_id": st.session_state["user"]["_id"],
-                "car_id": selcar.get("_id", selcar.get("Car_ID"))
-            }
+            {"user_id": st.session_state["user"]["_id"],
+             "car_id": selcar.get("_id", selcar.get("Car_ID"))}
         )
         if r and r.get("success"):
-            st.success("Booking Confirmed 🎉")
+            st.success("Booking confirmed 🎉")
 
 
 # ------------------------------------------------------------
