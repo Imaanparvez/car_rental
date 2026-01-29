@@ -6,3 +6,4 @@ bcrypt
 gunicorn
 numpy
 scikit-learn
+pandas
