@@ -1,39 +1,3 @@
-import os
-import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-
-# -------------------------------
-# LOAD DATASET (RENDER SAFE)
-# -------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.join(BASE_DIR, "dataset", "car_rental_cbf.csv")
-
-df = pd.read_csv(DATA_PATH)
-
-# Normalize text
-cat_cols = ["Brand", "Fuel_Type", "Transmission", "Body_Type"]
-
-for col in cat_cols:
-    df[col] = df[col].str.lower().str.strip()
-
-df["feature_text"] = df[cat_cols].astype(str).agg(" ".join, axis=1)
-
-# TF-IDF
-tfidf = TfidfVectorizer()
-car_tfidf_matrix = tfidf.fit_transform(df["feature_text"])
-
-
-def apply_numeric_filters(df, prefs):
-    if prefs.get("min_mileage") is not None:
-        df = df[df["Mileage"] >= prefs["min_mileage"]]
-
-    if prefs.get("max_engine_cc") is not None:
-        df = df[df["Engine_CC"] <= prefs["max_engine_cc"]]
-
-    return df
-
-
 def recommend_cbf(prefs, top_n=5):
     user_text = (
         prefs.get("Brand", "") + " " +
@@ -48,15 +12,31 @@ def recommend_cbf(prefs, top_n=5):
     df_copy = df.copy()
     df_copy["similarity_score"] = scores
 
+   
     df_filtered = apply_numeric_filters(df_copy, prefs)
 
-    result = (
-    df_filtered
-    .sort_values("similarity_score", ascending=False)
-    .drop_duplicates(subset=["Brand", "Model"])  # ✅ FIX 1
-    .head(top_n)
+    sorted_df = df_filtered.sort_values(
+        "similarity_score",
+        ascending=False
     )
 
+    sorted_df = sorted_df.drop_duplicates(
+        subset=["Brand", "Model"]
+    )
+
+ 
+    diverse = sorted_df.drop_duplicates(
+        subset=["Brand"]
+    )
+
+    
+    if len(diverse) < top_n:
+        remaining = sorted_df[
+            ~sorted_df.index.isin(diverse.index)
+        ]
+        diverse = pd.concat([diverse, remaining])
+
+    result = diverse.head(top_n)
 
     return result[[
         "Car_ID", "Brand", "Model",
