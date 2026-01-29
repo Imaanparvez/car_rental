@@ -47,8 +47,40 @@ def set_background(image_path):
             """,
             unsafe_allow_html=True
         )
-    except:
+    except Exception:
         pass
+
+
+# ------------------------------------------------------------
+# SAFE REQUEST HELPERS 🔥
+# ------------------------------------------------------------
+def safe_post(url, payload):
+    try:
+        r = requests.post(url, json=payload, timeout=30)
+        if r.status_code == 200:
+            return r.json()
+        else:
+            st.error(f"❌ API Error {r.status_code}")
+            st.code(r.text)
+    except Exception as e:
+        st.error("❌ Backend connection failed")
+        st.write(str(e))
+    return None
+
+
+def safe_get(url):
+    try:
+        r = requests.get(url, timeout=30)
+        if r.status_code == 200:
+            return r.json()
+        else:
+            st.error(f"❌ API Error {r.status_code}")
+            st.code(r.text)
+    except Exception as e:
+        st.error("❌ Backend connection failed")
+        st.write(str(e))
+    return None
+
 
 # ------------------------------------------------------------
 # LOGIN PAGE
@@ -63,12 +95,11 @@ def login_page():
         password = st.text_input("Password", type="password")
 
         if st.button("Login"):
-            r = requests.post(
+            data = safe_post(
                 f"{BACKEND_URL}/api/login",
-                json={"email": email, "password": password}
+                {"email": email, "password": password}
             )
-            data = r.json()
-            if "user" in data:
+            if data and "user" in data:
                 st.session_state["user"] = data["user"]
                 st.session_state["page"] = "home"
                 st.rerun()
@@ -82,19 +113,20 @@ def login_page():
         password = st.text_input("Password", type="password", key="signup_pass")
 
         if st.button("Sign Up"):
-            r = requests.post(
+            data = safe_post(
                 f"{BACKEND_URL}/api/signup",
-                json={
+                {
                     "name": name,
                     "email": email,
                     "phone": phone,
                     "password": password
                 }
             )
-            if r.json().get("success"):
+            if data and data.get("success"):
                 st.success("Account created! Please login.")
             else:
-                st.error("User already exists")
+                st.error("Signup failed")
+
 
 # ------------------------------------------------------------
 # SIDEBAR
@@ -111,9 +143,10 @@ def render_sidebar():
         st.rerun()
 
     if st.sidebar.button("🚪 Logout"):
-        st.session_state["user"] = None
+        st.session_state.clear()
         st.session_state["page"] = "login"
         st.rerun()
+
 
 # ------------------------------------------------------------
 # HOME PAGE
@@ -130,8 +163,9 @@ def home_page():
         unsafe_allow_html=True
     )
 
+
 # ------------------------------------------------------------
-# BOOK PAGE (AI + MANUAL)
+# BOOK PAGE
 # ------------------------------------------------------------
 def book_page():
     st.markdown("## 📅 Book a Car")
@@ -164,14 +198,16 @@ def book_page():
                 "min_mileage": min_mileage,
                 "max_engine_cc": max_engine_cc
             }
-            r = requests.post(f"{BACKEND_URL}/recommend", json=payload)
-            st.session_state["recommended_cars"] = r.json()
-            if not st.session_state["recommended_cars"]:
-                st.warning(
-                 "No cars matched your exact filters. "
-                 "Showing closest matches instead."
-                 )
 
+            data = safe_post(f"{BACKEND_URL}/recommend", payload)
+
+            if data is not None:
+                st.session_state["recommended_cars"] = data
+                if not data:
+                    st.warning(
+                        "No cars matched your exact filters. "
+                        "Showing closest matches instead."
+                    )
 
     # -------------------------------
     # SHOW AI RESULTS
@@ -181,21 +217,25 @@ def book_page():
         for car in st.session_state["recommended_cars"]:
             cols = st.columns([4, 2, 1])
             cols[0].write(f"**{car['Brand']} {car['Model']}**")
-            cols[1].write(f"Mileage: {car['Mileage']} | CC: {car['Engine_CC']}")
-            if cols[2].button("Select", key=car["Car_ID"]):
+            cols[1].write(
+                f"Mileage: {car.get('Mileage')} | CC: {car.get('Engine_CC')}"
+            )
+            if cols[2].button("Select", key=str(car.get("Car_ID"))):
                 st.session_state["selected_car_from_ai"] = car
 
     # -------------------------------
     # FETCH ALL CARS (FALLBACK)
     # -------------------------------
-    cars = requests.get(f"{BACKEND_URL}/api/cars").json()
+    cars = safe_get(f"{BACKEND_URL}/api/cars")
+    if not cars:
+        return
 
     if "selected_car_from_ai" not in st.session_state:
-
         car_labels = [
             f"{c['brand']} {c['model']} ({c['body_type']})"
             for c in cars
         ]
+
         selected_label = st.selectbox("Select Car", car_labels)
 
         selected_car = next(
@@ -206,8 +246,10 @@ def book_page():
 
     else:
         selected_car = st.session_state["selected_car_from_ai"]
-        st.success(f"Using AI recommended car: {selected_car['Brand']} {selected_car['Model']}")
-        price = 2000  # map later from DB
+        st.success(
+            f"Using AI recommended car: {selected_car['Brand']} {selected_car['Model']}"
+        )
+        price = 2000  # map from DB later
 
     # -------------------------------
     # BOOKING DATES
@@ -226,15 +268,16 @@ def book_page():
     st.markdown(f"## 💰 Total Cost: ₹{total_cost}")
 
     if st.button("Confirm Booking"):
-        r = requests.post(
+        result = safe_post(
             f"{BACKEND_URL}/api/book",
-            json={
+            {
                 "user_id": st.session_state["user"]["_id"],
                 "car_id": selected_car.get("_id", selected_car.get("Car_ID"))
             }
         )
-        if r.json().get("success"):
+        if result and result.get("success"):
             st.success("✅ Booking successful")
+
 
 # ------------------------------------------------------------
 # ROUTER
