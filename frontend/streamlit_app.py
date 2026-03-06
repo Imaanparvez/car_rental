@@ -4,22 +4,13 @@ import os
 from datetime import date, timedelta
 import base64
 
-# ------------------------------------------------------------
-# BACKEND URL
-# ------------------------------------------------------------
 BACKEND_URL = os.environ.get("BACKEND_URL")
 if not BACKEND_URL:
     st.error("❌ BACKEND_URL missing in env")
     st.stop()
 
-# ------------------------------------------------------------
-# PAGE CONFIG
-# ------------------------------------------------------------
 st.set_page_config(page_title="AI Car Rental", layout="wide")
 
-# ------------------------------------------------------------
-# SESSION STATE
-# ------------------------------------------------------------
 if "user" not in st.session_state:
     st.session_state["user"] = None
 
@@ -41,9 +32,6 @@ if "selected_car" not in st.session_state:
     st.session_state["selected_car"] = None
 
 
-# ------------------------------------------------------------
-# SAFE REQUEST HELPERS
-# ------------------------------------------------------------
 def safe_post(url, payload):
     try:
         r = requests.post(url, json=payload, timeout=20)
@@ -66,9 +54,6 @@ def safe_get(url):
     return None
 
 
-# ------------------------------------------------------------
-# UTILITY: Load image as Base64
-# ------------------------------------------------------------
 def load_image_base64(path):
     try:
         with open(path, "rb") as f:
@@ -77,9 +62,6 @@ def load_image_base64(path):
         return ""
 
 
-# ------------------------------------------------------------
-# CONSISTENT TILE RENDERER
-# ------------------------------------------------------------
 def render_tile(image_path):
     img64 = load_image_base64(image_path)
     return f"""
@@ -104,9 +86,6 @@ def render_tile(image_path):
     """
 
 
-# ------------------------------------------------------------
-# SIDEBAR
-# ------------------------------------------------------------
 def render_sidebar():
     st.sidebar.success(f"Welcome {st.session_state['user']['name']} 👋")
 
@@ -124,15 +103,11 @@ def render_sidebar():
         st.rerun()
 
 
-# ------------------------------------------------------------
-# LOGIN / SIGNUP PAGE
-# ------------------------------------------------------------
 def login_page():
     st.title("🔐 Login / Sign Up")
 
     tab1, tab2 = st.tabs(["Login", "Sign Up"])
 
-    # LOGIN
     with tab1:
         email = st.text_input("Email")
         password = st.text_input("Password", type="password")
@@ -147,7 +122,6 @@ def login_page():
             else:
                 st.error("Invalid Credentials")
 
-    # SIGNUP
     with tab2:
         name = st.text_input("Name")
         email = st.text_input("Email", key="signup_email")
@@ -163,9 +137,6 @@ def login_page():
                 st.error("Signup failed")
 
 
-# ------------------------------------------------------------
-# PREFERENCES PAGE (Image Tiles)
-# ------------------------------------------------------------
 def preferences_page():
     st.title("🎛 Choose Your Preferences")
 
@@ -197,7 +168,7 @@ def preferences_page():
 
     st.write("---")
 
-    if st.button("📌 Recommend"):
+    if st.button(" Recommend"):
         f = st.session_state["filters"]
         missing = [key.replace("_", " ") for key, val in f.items() if val is None]
 
@@ -223,40 +194,31 @@ def preferences_page():
             st.rerun()
 
 
-# ------------------------------------------------------------
-# BOOK CAR PAGE (unchanged)
-# ------------------------------------------------------------
 def book_page():
-    st.title("🚗 Book Your Car")
+    st.title("Book Your Car")
 
     cars = safe_get(f"{BACKEND_URL}/api/cars")
     if not cars:
         st.error("No cars found")
         return
 
-    st.write("### 🎯 Select a Car")
-
     dropdown = []
     rec_pairs = set()
 
-    # Recommended first
     for car in st.session_state["recommended_cars"]:
         brand = car.get("Brand")
         model = car.get("Model")
         if not brand or not model:
             continue
-
         dropdown.append(f"{brand} {model} (For You)")
         rec_pairs.add((brand, model))
 
-    # All other cars
     for c in cars:
-        if (c["brand"], c["model"]) not in rec_pairs:
-            dropdown.append(f"{c['brand']} {c['model']}")
+        if (c["Brand"], c["Model"]) not in rec_pairs:
+            dropdown.append(f"{c['Brand']} {c['Model']}")
 
     default = 0
 
-    # Preserve selection
     if st.session_state["selected_car"]:
         sc = st.session_state["selected_car"]
         brand, model = sc.get("Brand"), sc.get("Model")
@@ -267,7 +229,6 @@ def book_page():
 
     chosen = st.selectbox("Select Car", dropdown, index=default)
 
-    # Map to car
     if "(For You)" in chosen:
         raw = chosen.replace(" (For You)", "")
         brand, model = raw.split(" ", 1)
@@ -276,8 +237,8 @@ def book_page():
         price = 2000
     else:
         selcar = next(c for c in cars
-                      if f"{c['brand']} {c['model']}" == chosen)
-        price = selcar["price"]
+                      if f"{c['Brand']} {c['Model']}" == chosen)
+        price = selcar.get("price", 2000)
 
     st.session_state["selected_car"] = selcar
 
@@ -289,7 +250,7 @@ def book_page():
 
     days = max((drop - pickup).days, 1)
 
-    st.write(f"### 💰 Total Cost: ₹{days * price}")
+    st.write(f"### Total Cost: ₹{days * price}")
 
     if st.button("Confirm Booking"):
         r = safe_post(
@@ -301,9 +262,6 @@ def book_page():
             st.success("Booking confirmed 🎉")
 
 
-# ------------------------------------------------------------
-# ROUTER
-# ------------------------------------------------------------
 if st.session_state["user"] is None:
     login_page()
 else:
