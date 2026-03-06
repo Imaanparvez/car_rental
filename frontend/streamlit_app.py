@@ -168,14 +168,8 @@ def preferences_page():
 
     st.write("---")
 
-    if st.button(" Recommend"):
+    if st.button("📌 Recommend"):
         f = st.session_state["filters"]
-        missing = [key.replace("_", " ") for key, val in f.items() if val is None]
-
-        if missing:
-            missing_text = ", ".join(missing)
-            st.warning(f"⚠ Please select {missing_text}")
-            return
 
         payload = {
             "Brand": f["Brand"],
@@ -195,7 +189,7 @@ def preferences_page():
 
 
 def book_page():
-    st.title("Book Your Car")
+    st.title("🚗 Book Your Car")
 
     cars = safe_get(f"{BACKEND_URL}/api/cars")
     if not cars:
@@ -214,20 +208,12 @@ def book_page():
         rec_pairs.add((brand, model))
 
     for c in cars:
-        if (c["Brand"], c["Model"]) not in rec_pairs:
-            dropdown.append(f"{c['Brand']} {c['Model']}")
+        brand = c.get("Brand") or c.get("brand")
+        model = c.get("Model") or c.get("model")
+        if (brand, model) not in rec_pairs:
+            dropdown.append(f"{brand} {model}")
 
-    default = 0
-
-    if st.session_state["selected_car"]:
-        sc = st.session_state["selected_car"]
-        brand, model = sc.get("Brand"), sc.get("Model")
-        if brand and model:
-            lbl = f"{brand} {model} (For You)"
-            if lbl in dropdown:
-                default = dropdown.index(lbl)
-
-    chosen = st.selectbox("Select Car", dropdown, index=default)
+    chosen = st.selectbox("Select Car", dropdown)
 
     if "(For You)" in chosen:
         raw = chosen.replace(" (For You)", "")
@@ -237,7 +223,7 @@ def book_page():
         price = 2000
     else:
         selcar = next(c for c in cars
-                      if f"{c['Brand']} {c['Model']}" == chosen)
+                      if f"{c.get('Brand') or c.get('brand')} {c.get('Model') or c.get('model')}" == chosen)
         price = selcar.get("price", 2000)
 
     st.session_state["selected_car"] = selcar
@@ -255,8 +241,10 @@ def book_page():
     if st.button("Confirm Booking"):
         r = safe_post(
             f"{BACKEND_URL}/api/book",
-            {"user_id": st.session_state["user"]["_id"],
-             "car_id": selcar.get("_id", selcar.get("Car_ID"))}
+            {
+                "user_id": str(st.session_state["user"]["_id"]),
+                "car_id": str(selcar["_id"])
+            }
         )
         if r and r.get("success"):
             st.success("Booking confirmed 🎉")
