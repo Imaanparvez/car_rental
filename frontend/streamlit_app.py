@@ -18,10 +18,12 @@ st.set_page_config(page_title="AI Car Rental", layout="wide")
 st.markdown("""
 <style>
 
+/* Make header transparent so the black bar disappears */
 [data-testid="stHeader"]{
-    display:none;
+    background: transparent;
 }
 
+/* Hide Streamlit menu and footer */
 #MainMenu{
     visibility:hidden;
 }
@@ -30,6 +32,7 @@ footer{
     visibility:hidden;
 }
 
+/* Remove extra padding */
 [data-testid="stAppViewContainer"]{
     padding:0;
 }
