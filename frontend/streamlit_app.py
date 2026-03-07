@@ -18,6 +18,18 @@ st.set_page_config(page_title="AI Car Rental", layout="wide")
 st.markdown("""
 <style>
 
+[data-testid="stHeader"]{
+    display:none;
+}
+
+#MainMenu{
+    visibility:hidden;
+}
+
+footer{
+    visibility:hidden;
+}
+
 [data-testid="stAppViewContainer"]{
     padding:0;
 }
@@ -205,7 +217,7 @@ def render_tile(image_path):
 
 
 # -----------------------------
-# HOME PAGE (FROM FIRST CODE)
+# HOME PAGE
 # -----------------------------
 def home_page():
 
