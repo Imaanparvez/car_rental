@@ -18,12 +18,12 @@ st.set_page_config(page_title="AI Car Rental", layout="wide")
 st.markdown("""
 <style>
 
-/* Make header transparent so the black bar disappears */
+/* transparent header */
 [data-testid="stHeader"]{
     background: transparent;
 }
 
-/* Hide Streamlit menu and footer */
+/* hide streamlit menu */
 #MainMenu{
     visibility:hidden;
 }
@@ -32,7 +32,7 @@ footer{
     visibility:hidden;
 }
 
-/* Remove extra padding */
+/* remove padding */
 [data-testid="stAppViewContainer"]{
     padding:0;
 }
@@ -224,8 +224,6 @@ def render_tile(image_path):
 # -----------------------------
 def home_page():
 
-    st.sidebar.title("Navigation")
-
     if st.sidebar.button("🔐 Login"):
         st.session_state["page"] = "login"
         st.rerun()
@@ -261,6 +259,10 @@ def render_sidebar():
 
     st.sidebar.success(f"Welcome {st.session_state['user']['name']} 👋")
 
+    if st.sidebar.button("🏠 Home"):
+        st.session_state["page"] = "home"
+        st.rerun()
+
     if st.sidebar.button("🎛 Preferences"):
         st.session_state["page"] = "preferences"
         st.rerun()
@@ -279,6 +281,10 @@ def render_sidebar():
 # LOGIN PAGE
 # -----------------------------
 def login_page():
+
+    if st.sidebar.button("🏠 Home"):
+        st.session_state["page"] = "home"
+        st.rerun()
 
     st.title("🔐 Login / Sign Up")
 
