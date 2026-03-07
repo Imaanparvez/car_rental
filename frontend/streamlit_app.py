@@ -17,37 +17,59 @@ st.set_page_config(page_title="AI Car Rental", layout="wide")
 st.markdown("""
 <style>
 
+.block-container{
+padding:0rem 0rem 0rem 0rem;
+}
+
 .main{
 background:black;
 }
 
-/* FULL SCREEN HERO */
+/* HERO SECTION */
 
 .hero-container{
-position:relative;
+position:fixed;
+top:0;
+left:0;
+width:100vw;
 height:100vh;
-width:100%;
 overflow:hidden;
 }
 
 .hero-container img{
 width:100%;
-height:100vh;
+height:100%;
 object-fit:cover;
+}
+
+/* DARK OVERLAY */
+
+.hero-overlay{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:linear-gradient(
+to bottom,
+rgba(0,0,0,0.55),
+rgba(0,0,0,0.1),
+rgba(0,0,0,0.65)
+);
 }
 
 /* TOP TEXT */
 
 .hero-top{
 position:absolute;
-top:60px;
+top:80px;
 width:100%;
 text-align:center;
 color:white;
 }
 
 .hero-title{
-font-size:52px;
+font-size:54px;
 font-weight:700;
 }
 
@@ -60,20 +82,20 @@ margin-top:10px;
 
 .hero-bottom{
 position:absolute;
-bottom:60px;
+bottom:80px;
 width:100%;
 text-align:center;
 color:white;
 }
 
 .hero-tag{
-font-size:28px;
+font-size:30px;
 font-weight:600;
 }
 
 .hero-caption{
 font-size:20px;
-margin-top:10px;
+margin-top:8px;
 }
 
 .stButton>button{
@@ -90,7 +112,6 @@ transform:scale(1.05);
 
 </style>
 """, unsafe_allow_html=True)
-
 
 # -----------------------------
 # SESSION STATE
@@ -144,41 +165,6 @@ def safe_get(url):
 
 
 # -----------------------------
-# IMAGE HELPERS
-# -----------------------------
-def load_image_base64(path):
-    try:
-        with open(path, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    except:
-        return ""
-
-
-def render_tile(image_path):
-    img64 = load_image_base64(image_path)
-    return f"""
-    <div style="
-        width:180px;
-        height:120px;
-        border-radius:12px;
-        overflow:hidden;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        background:#111;
-    ">
-        <img src="data:image/jpeg;base64,{img64}"
-            style="
-                width:100%;
-                height:100%;
-                object-fit:cover;
-            "
-        >
-    </div>
-    """
-
-
-# -----------------------------
 # HOME LANDING PAGE
 # -----------------------------
 def home_page():
@@ -193,12 +179,12 @@ def home_page():
         st.session_state["page"] = "login"
         st.rerun()
 
-    img64 = load_image_base64("assets/car_images/hero.jpg")
-
-    st.markdown(f"""
+    st.markdown("""
     <div class="hero-container">
 
-        <img src="data:image/jpeg;base64,{img64}">
+        <img src="assets/car_images/hero.jpg">
+
+        <div class="hero-overlay"></div>
 
         <div class="hero-top">
             <div class="hero-title">Your next drive starts here</div>
@@ -299,35 +285,27 @@ def preferences_page():
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.markdown(render_tile("assets/brand.jpeg"), unsafe_allow_html=True)
         st.session_state["filters"]["Brand"] = st.selectbox(
             "Brand",
             ["Toyota", "Honda", "Hyundai", "BMW"],
-            key="brand_dd"
         )
 
     with col2:
-        st.markdown(render_tile("assets/fuel.jpeg"), unsafe_allow_html=True)
         st.session_state["filters"]["Fuel_Type"] = st.selectbox(
             "Fuel Type",
             ["Petrol", "Diesel", "Electric"],
-            key="fuel_dd"
         )
 
     with col3:
-        st.markdown(render_tile("assets/type.jpeg"), unsafe_allow_html=True)
         st.session_state["filters"]["Body_Type"] = st.selectbox(
             "Body Type",
             ["SUV", "Sedan", "Hatchback"],
-            key="body_dd"
         )
 
     with col4:
-        st.markdown(render_tile("assets/transmission.jpeg"), unsafe_allow_html=True)
         st.session_state["filters"]["Transmission"] = st.selectbox(
             "Transmission",
             ["Manual", "Automatic"],
-            key="trans_dd"
         )
 
     st.write("---")
@@ -369,51 +347,18 @@ def book_page():
         return
 
     dropdown = []
-    rec_pairs = set()
-
-    for car in st.session_state["recommended_cars"]:
-
-        brand = car.get("Brand")
-        model = car.get("Model")
-
-        if not brand or not model:
-            continue
-
-        dropdown.append(f"{brand} {model} (For You)")
-        rec_pairs.add((brand, model))
 
     for c in cars:
-
-        brand = c.get("Brand") or c.get("brand")
-        model = c.get("Model") or c.get("model")
-
-        if (brand, model) not in rec_pairs:
-            dropdown.append(f"{brand} {model}")
+        dropdown.append(f"{c.get('Brand')} {c.get('Model')}")
 
     chosen = st.selectbox("Select Car", dropdown)
 
-    if "(For You)" in chosen:
+    selcar = next(
+        c for c in cars
+        if f"{c.get('Brand')} {c.get('Model')}" == chosen
+    )
 
-        raw = chosen.replace(" (For You)", "")
-        brand, model = raw.split(" ", 1)
-
-        selcar = next(
-            c for c in st.session_state["recommended_cars"]
-            if c["Brand"] == brand and c["Model"] == model
-        )
-
-        price = 2000
-
-    else:
-
-        selcar = next(
-            c for c in cars
-            if f"{c.get('Brand') or c.get('brand')} {c.get('Model') or c.get('model')}" == chosen
-        )
-
-        price = selcar.get("price", 2000)
-
-    st.session_state["selected_car"] = selcar
+    price = selcar.get("price", 2000)
 
     col1, col2 = st.columns(2)
 
@@ -429,24 +374,11 @@ def book_page():
 
     if st.button("Confirm Booking"):
 
-        real_car = next(
-            (
-                c for c in cars
-                if (c.get("Brand") or c.get("brand")) == (selcar.get("Brand") or selcar.get("brand"))
-                and (c.get("Model") or c.get("model")) == (selcar.get("Model") or selcar.get("model"))
-            ),
-            None
-        )
-
-        if not real_car:
-            st.error("Car not found in database")
-            return
-
         r = safe_post(
             f"{BACKEND_URL}/api/book",
             {
                 "user_id": str(st.session_state["user"]["_id"]),
-                "car_id": str(real_car["_id"])
+                "car_id": str(selcar["_id"])
             }
         )
 
@@ -475,4 +407,3 @@ else:
 
     else:
         preferences_page()
-
