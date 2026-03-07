@@ -4,96 +4,101 @@ import os
 from datetime import date, timedelta
 import base64
 
-BACKEND_URL = os.environ.get("BACKEND_URL")
+BACKEND_URL = "http://192.168.1.17:8501"
+
 if not BACKEND_URL:
-    st.error("❌ BACKEND_URL missing in env")
+    st.error("❌ BACKEND_URL missing")
     st.stop()
 
 st.set_page_config(page_title="AI Car Rental", layout="wide")
 
 # -----------------------------
-# GLOBAL STYLES
+# GLOBAL CSS (FOR FULLSCREEN HERO)
 # -----------------------------
 st.markdown("""
 <style>
 
-.main{
-background:black;
+[data-testid="stAppViewContainer"]{
+    padding:0;
 }
 
-.hero-container{
-position:relative;
-width:100%;
-height:100vh;
-overflow:hidden;
+.block-container{
+    padding:0 !important;
+    max-width:100% !important;
 }
 
-.hero-img{
-position:absolute;
-top:0;
-left:0;
-width:100%;
-height:100%;
-object-fit:cover;
-z-index:0;
+.hero{
+    position:relative;
+    width:100vw;
+    height:100vh;
+    margin-left:calc(-50vw + 50%);
+    overflow:hidden;
 }
 
-.hero-overlay{
-position:absolute;
-top:0;
-left:0;
-width:100%;
-height:100%;
-display:flex;
-flex-direction:column;
-justify-content:space-between;
-padding:60px;
-z-index:2;
+.hero img{
+    position:absolute;
+    width:100%;
+    height:100%;
+    object-fit:cover;
 }
 
-.hero-top{
-text-align:center;
-margin-top:20px;
+.hero::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(
+        rgba(0,0,0,0.6),
+        rgba(0,0,0,0.3),
+        rgba(0,0,0,0.6)
+    );
 }
 
-.hero-bottom{
-text-align:center;
-margin-bottom:40px;
+@keyframes floatText{
+    0%{transform:translateY(0)}
+    50%{transform:translateY(-5px)}
+    100%{transform:translateY(0)}
 }
 
-.hero-title{
-font-size:52px;
-font-weight:700;
-color:white;
+.top{
+    position:absolute;
+    top:6%;
+    width:100%;
+    text-align:center;
+    color:white;
+    z-index:5;
 }
 
-.hero-sub{
-font-size:28px;
-color:white;
-margin-top:10px;
+.top h1{
+    font-size:36px;
+    margin:0;
+    text-shadow:0 5px 25px rgba(0,0,0,0.9);
+    animation:floatText 4s ease-in-out infinite;
 }
 
-.hero-tag{
-font-size:22px;
-color:white;
-margin-top:10px;
+.top h3{
+    font-size:20px;
+    margin-top:6px;
+    animation:floatText 4s ease-in-out infinite;
 }
 
-.hero-caption{
-color:white;
-font-size:22px;
+.top p{
+    font-size:16px;
+    margin-top:4px;
+    animation:floatText 4s ease-in-out infinite;
 }
 
-.stButton>button{
-border-radius:12px;
-height:45px;
-width:100%;
-font-weight:600;
-transition:0.3s;
+.bottom{
+    position:absolute;
+    bottom:14%;
+    width:100%;
+    text-align:center;
+    color:white;
+    z-index:5;
 }
 
-.stButton>button:hover{
-transform:scale(1.05);
+.bottom p{
+    font-size:18px;
+    animation:floatText 4s ease-in-out infinite;
 }
 
 </style>
@@ -132,61 +137,14 @@ def safe_post(url, payload):
         if r.status_code == 200:
             return r.json()
         else:
-            st.error(f"Error: {r.text}")
-    except Exception as e:
-        st.error(str(e))
-    return None
-
-
-def safe_get(url):
-    try:
-        r = requests.get(url, timeout=20)
-        if r.status_code == 200:
-            return r.json()
-        else:
-            st.error(f"Error: {r.text}")
+            st.error(r.text)
     except Exception as e:
         st.error(str(e))
     return None
 
 
 # -----------------------------
-# IMAGE HELPERS
-# -----------------------------
-def load_image_base64(path):
-    try:
-        with open(path, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    except:
-        return ""
-
-
-def render_tile(image_path):
-    img64 = load_image_base64(image_path)
-    return f"""
-    <div style="
-        width:180px;
-        height:120px;
-        border-radius:12px;
-        overflow:hidden;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        background:#111;
-    ">
-        <img src="data:image/jpeg;base64,{img64}"
-            style="
-                width:100%;
-                height:100%;
-                object-fit:cover;
-            "
-        >
-    </div>
-    """
-
-
-# -----------------------------
-# HOME LANDING PAGE
+# HOME PAGE
 # -----------------------------
 def home_page():
 
@@ -200,53 +158,24 @@ def home_page():
         st.session_state["page"] = "login"
         st.rerun()
 
-    hero_img = load_image_base64("assets/land.jpg")
+    st.markdown("""
+    <div class="hero">
 
-    st.markdown(f"""
-    <div class="hero-container">
+    <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70">
 
-        <img class="hero-img"
-        src="data:image/jpeg;base64,{hero_img}">
+    <div class="top">
+        <h1>Your next drive starts here</h1>
+        <h3>Choose • Book • Hit the road</h3>
+        <p>Renting made simple</p>
+    </div>
 
-        <div class="hero-overlay">
-
-            <div class="hero-top">
-                <div class="hero-title">Your next drive starts here</div>
-                <div class="hero-sub">Choose • Book • Hit the road</div>
-                <div class="hero-tag">Renting made simple</div>
-            </div>
-
-            <div class="hero-bottom">
-                <div class="hero-caption">AI Powered Car Rental System</div>
-                <div class="hero-caption">Smart • Reliable • Affordable</div>
-                <div class="hero-caption">Experience the future of cars</div>
-            </div>
-
-        </div>
+    <div class="bottom">
+        <p>Smart • Reliable • Affordable</p>
+        <p>Experience the future of cars</p>
+    </div>
 
     </div>
     """, unsafe_allow_html=True)
-
-
-# -----------------------------
-# SIDEBAR AFTER LOGIN
-# -----------------------------
-def render_sidebar():
-
-    st.sidebar.success(f"Welcome {st.session_state['user']['name']} 👋")
-
-    if st.sidebar.button("🎛 Preferences"):
-        st.session_state["page"] = "preferences"
-        st.rerun()
-
-    if st.sidebar.button("📅 Book Car"):
-        st.session_state["page"] = "book"
-        st.rerun()
-
-    if st.sidebar.button("🚪 Logout"):
-        st.session_state.clear()
-        st.session_state["page"] = "home"
-        st.rerun()
 
 
 # -----------------------------
@@ -303,171 +232,6 @@ def login_page():
 
 
 # -----------------------------
-# PREFERENCES PAGE
-# -----------------------------
-def preferences_page():
-
-    st.title("🎛 Choose Your Preferences")
-
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        st.markdown(render_tile("assets/brand.jpeg"), unsafe_allow_html=True)
-        st.session_state["filters"]["Brand"] = st.selectbox(
-            "Brand",
-            ["Toyota", "Honda", "Hyundai", "BMW"],
-            key="brand_dd"
-        )
-
-    with col2:
-        st.markdown(render_tile("assets/fuel.jpeg"), unsafe_allow_html=True)
-        st.session_state["filters"]["Fuel_Type"] = st.selectbox(
-            "Fuel Type",
-            ["Petrol", "Diesel", "Electric"],
-            key="fuel_dd"
-        )
-
-    with col3:
-        st.markdown(render_tile("assets/type.jpeg"), unsafe_allow_html=True)
-        st.session_state["filters"]["Body_Type"] = st.selectbox(
-            "Body Type",
-            ["SUV", "Sedan", "Hatchback"],
-            key="body_dd"
-        )
-
-    with col4:
-        st.markdown(render_tile("assets/transmission.jpeg"), unsafe_allow_html=True)
-        st.session_state["filters"]["Transmission"] = st.selectbox(
-            "Transmission",
-            ["Manual", "Automatic"],
-            key="trans_dd"
-        )
-
-    st.write("---")
-
-    if st.button("📌 Recommend"):
-
-        f = st.session_state["filters"]
-
-        payload = {
-            "Brand": f["Brand"],
-            "Fuel_Type": f["Fuel_Type"],
-            "Body_Type": f["Body_Type"],
-            "Transmission": f["Transmission"]
-        }
-
-        rec = safe_post(f"{BACKEND_URL}/recommend", payload)
-
-        if rec:
-
-            st.session_state["recommended_cars"] = [
-                car for car in rec if car.get("Brand") and car.get("Model")
-            ]
-
-            st.session_state["page"] = "book"
-            st.rerun()
-
-
-# -----------------------------
-# BOOK PAGE
-# -----------------------------
-def book_page():
-
-    st.title("🚗 Book Your Car")
-
-    cars = safe_get(f"{BACKEND_URL}/api/cars")
-
-    if not cars:
-        st.error("No cars found")
-        return
-
-    dropdown = []
-    rec_pairs = set()
-
-    for car in st.session_state["recommended_cars"]:
-
-        brand = car.get("Brand")
-        model = car.get("Model")
-
-        if not brand or not model:
-            continue
-
-        dropdown.append(f"{brand} {model} (For You)")
-        rec_pairs.add((brand, model))
-
-    for c in cars:
-
-        brand = c.get("Brand") or c.get("brand")
-        model = c.get("Model") or c.get("model")
-
-        if (brand, model) not in rec_pairs:
-            dropdown.append(f"{brand} {model}")
-
-    chosen = st.selectbox("Select Car", dropdown)
-
-    if "(For You)" in chosen:
-
-        raw = chosen.replace(" (For You)", "")
-        brand, model = raw.split(" ", 1)
-
-        selcar = next(
-            c for c in st.session_state["recommended_cars"]
-            if c["Brand"] == brand and c["Model"] == model
-        )
-
-        price = 2000
-
-    else:
-
-        selcar = next(
-            c for c in cars
-            if f"{c.get('Brand') or c.get('brand')} {c.get('Model') or c.get('model')}" == chosen
-        )
-
-        price = selcar.get("price", 2000)
-
-    st.session_state["selected_car"] = selcar
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        pickup = st.date_input("Pickup Date", date.today())
-
-    with col2:
-        drop = st.date_input("Return Date", date.today() + timedelta(days=1))
-
-    days = max((drop - pickup).days, 1)
-
-    st.write(f"### Total Cost: ₹{days * price}")
-
-    if st.button("Confirm Booking"):
-
-        real_car = next(
-            (
-                c for c in cars
-                if (c.get("Brand") or c.get("brand")) == (selcar.get("Brand") or selcar.get("brand"))
-                and (c.get("Model") or c.get("model")) == (selcar.get("Model") or selcar.get("model"))
-            ),
-            None
-        )
-
-        if not real_car:
-            st.error("Car not found in database")
-            return
-
-        r = safe_post(
-            f"{BACKEND_URL}/api/book",
-            {
-                "user_id": str(st.session_state["user"]["_id"]),
-                "car_id": str(real_car["_id"])
-            }
-        )
-
-        if r and r.get("success"):
-            st.success("Booking confirmed 🎉")
-
-
-# -----------------------------
 # ROUTING
 # -----------------------------
 if st.session_state["page"] == "home":
@@ -475,16 +239,3 @@ if st.session_state["page"] == "home":
 
 elif st.session_state["user"] is None:
     login_page()
-
-else:
-
-    render_sidebar()
-
-    if st.session_state["page"] == "preferences":
-        preferences_page()
-
-    elif st.session_state["page"] == "book":
-        book_page()
-
-    else:
-        preferences_page()
