@@ -4,7 +4,7 @@ import os
 from datetime import date, timedelta
 import base64
 
-BACKEND_URL = "http://192.168.1.17:8501"
+BACKEND_URL = os.environ.get("BACKEND_URL")
 
 if not BACKEND_URL:
     st.error("❌ BACKEND_URL missing")
