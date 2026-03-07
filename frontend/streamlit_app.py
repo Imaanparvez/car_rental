@@ -4,91 +4,85 @@ import os
 from datetime import date, timedelta
 import base64
 
-
-# -----------------------------
-# CONFIG
-# -----------------------------
-
-st.set_page_config(page_title="AI Car Rental", layout="wide")
-
 BACKEND_URL = os.environ.get("BACKEND_URL")
 if not BACKEND_URL:
     st.error("❌ BACKEND_URL missing in env")
     st.stop()
 
+st.set_page_config(page_title="AI Car Rental", layout="wide")
 
 # -----------------------------
-# GLOBAL STYLING
+# GLOBAL STYLES
 # -----------------------------
-
 st.markdown("""
 <style>
 
-body{
-background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-color:white;
+.main{
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
 }
 
-.block-container{
-padding-top:2rem;
-}
-
-.hero{
+.hero-title{
+font-size:48px;
+font-weight:700;
 text-align:center;
-padding:120px 20px;
-animation:fadeIn 1s ease-in-out;
-}
-
-.hero h1{
-font-size:60px;
-font-weight:800;
-}
-
-.hero p{
-font-size:20px;
-opacity:0.8;
-}
-
-.hero-btn{
-padding:14px 30px;
-font-size:18px;
-border-radius:30px;
-background:linear-gradient(45deg,#00c6ff,#0072ff);
-border:none;
 color:white;
-cursor:pointer;
-transition:0.3s;
+margin-top:80px;
+animation:fadeIn 1.2s ease-in-out;
 }
 
-.hero-btn:hover{
-transform:scale(1.05);
+.hero-sub{
+font-size:24px;
+text-align:center;
+color:#ddd;
+margin-top:15px;
+animation:fadeIn 1.8s ease-in-out;
 }
 
-.card{
-background:rgba(255,255,255,0.08);
-padding:30px;
-border-radius:16px;
-backdrop-filter:blur(10px);
-transition:0.3s;
+.hero-tag{
+font-size:20px;
+text-align:center;
+color:#f2f2f2;
+margin-top:10px;
+animation:fadeIn 2.2s ease-in-out;
 }
 
-.card:hover{
-transform:translateY(-5px);
+.hero-img{
+display:flex;
+justify-content:center;
+margin-top:40px;
+animation:fadeIn 2.6s ease-in-out;
+}
+
+.hero-caption{
+text-align:center;
+color:#ccc;
+font-size:18px;
+margin-top:15px;
 }
 
 @keyframes fadeIn{
-from{opacity:0;transform:translateY(20px)}
-to{opacity:1;transform:translateY(0)}
+0%{opacity:0;transform:translateY(20px);}
+100%{opacity:1;transform:translateY(0);}
+}
+
+.stButton>button{
+border-radius:12px;
+height:45px;
+width:100%;
+font-weight:600;
+transition:0.3s;
+}
+
+.stButton>button:hover{
+transform:scale(1.05);
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-
 # -----------------------------
 # SESSION STATE
 # -----------------------------
-
 if "user" not in st.session_state:
     st.session_state["user"] = None
 
@@ -113,59 +107,43 @@ if "selected_car" not in st.session_state:
 # -----------------------------
 # API HELPERS
 # -----------------------------
-
 def safe_post(url, payload):
-
     try:
         r = requests.post(url, json=payload, timeout=20)
-
         if r.status_code == 200:
             return r.json()
-
         else:
             st.error(f"Error: {r.text}")
-
     except Exception as e:
         st.error(str(e))
-
     return None
 
 
 def safe_get(url):
-
     try:
         r = requests.get(url, timeout=20)
-
         if r.status_code == 200:
             return r.json()
-
         else:
             st.error(f"Error: {r.text}")
-
     except Exception as e:
         st.error(str(e))
-
     return None
 
 
 # -----------------------------
 # IMAGE HELPERS
 # -----------------------------
-
 def load_image_base64(path):
-
     try:
         with open(path, "rb") as f:
             return base64.b64encode(f.read()).decode()
-
     except:
         return ""
 
 
 def render_tile(image_path):
-
     img64 = load_image_base64(image_path)
-
     return f"""
     <div style="
         width:180px;
@@ -189,71 +167,40 @@ def render_tile(image_path):
 
 
 # -----------------------------
-# LANDING PAGE
+# HOME LANDING PAGE
 # -----------------------------
+def home_page():
 
-def landing_page():
+    st.sidebar.title("Navigation")
 
-    st.markdown("""
-    <div class="hero">
-        <h1>🚗 AI Powered Car Rental</h1>
-        <p>Find the perfect car instantly with AI recommendations</p>
-    </div>
-    """, unsafe_allow_html=True)
+    if st.sidebar.button("🔐 Login"):
+        st.session_state["page"] = "login"
+        st.rerun()
 
-    col1,col2,col3 = st.columns(3)
+    if st.sidebar.button("📝 Sign Up"):
+        st.session_state["page"] = "login"
+        st.rerun()
 
-    with col1:
-        st.markdown("""
-        <div class="card">
-        <h3>🤖 AI Recommendations</h3>
-        <p>Smart suggestions based on your preferences.</p>
-        </div>
-        """, unsafe_allow_html=True)
+    st.markdown('<div class="hero-title">Your next drive starts here</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-sub">Choose • Book • Hit the road</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-tag">Renting made simple</div>', unsafe_allow_html=True)
 
-    with col2:
-        st.markdown("""
-        <div class="card">
-        <h3>⚡ Fast Booking</h3>
-        <p>Book your car within seconds.</p>
-        </div>
-        """, unsafe_allow_html=True)
+    st.markdown(
+        '<div class="hero-img"><img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70" width="650"></div>',
+        unsafe_allow_html=True
+    )
 
-    with col3:
-        st.markdown("""
-        <div class="card">
-        <h3>🚘 Premium Fleet</h3>
-        <p>Choose from the best brands.</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.write("")
-    st.write("")
-
-    col1,col2,col3 = st.columns([1,2,1])
-
-    with col2:
-
-        if st.button("🔐 Login"):
-            st.session_state["page"] = "login"
-            st.rerun()
-
-        if st.button("📝 Register"):
-            st.session_state["page"] = "login"
-            st.rerun()
+    st.markdown('<div class="hero-caption"><h3>AI Powered Car Rental System</h3></div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-caption">Smart • Reliable • Affordable</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-caption">Experience the future of cars</div>', unsafe_allow_html=True)
 
 
 # -----------------------------
-# SIDEBAR
+# SIDEBAR AFTER LOGIN
 # -----------------------------
-
 def render_sidebar():
 
-    st.sidebar.markdown("### 🚗 AI Car Rental")
-
     st.sidebar.success(f"Welcome {st.session_state['user']['name']} 👋")
-
-    st.sidebar.write("---")
 
     if st.sidebar.button("🎛 Preferences"):
         st.session_state["page"] = "preferences"
@@ -262,8 +209,6 @@ def render_sidebar():
     if st.sidebar.button("📅 Book Car"):
         st.session_state["page"] = "book"
         st.rerun()
-
-    st.sidebar.write("---")
 
     if st.sidebar.button("🚪 Logout"):
         st.session_state.clear()
@@ -274,10 +219,7 @@ def render_sidebar():
 # -----------------------------
 # LOGIN PAGE
 # -----------------------------
-
 def login_page():
-
-    st.markdown('<div class="card">', unsafe_allow_html=True)
 
     st.title("🔐 Login / Sign Up")
 
@@ -296,11 +238,9 @@ def login_page():
             )
 
             if user and "user" in user:
-
                 st.session_state["user"] = user["user"]
                 st.session_state["page"] = "preferences"
                 st.rerun()
-
             else:
                 st.error("Invalid Credentials")
 
@@ -325,20 +265,14 @@ def login_page():
 
             if r and r.get("success"):
                 st.success("Account created. Login Now!")
-
             else:
                 st.error("Signup failed")
-
-    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # -----------------------------
 # PREFERENCES PAGE
 # -----------------------------
-
 def preferences_page():
-
-    st.markdown('<div class="card">', unsafe_allow_html=True)
 
     st.title("🎛 Choose Your Preferences")
 
@@ -348,28 +282,32 @@ def preferences_page():
         st.markdown(render_tile("assets/brand.jpeg"), unsafe_allow_html=True)
         st.session_state["filters"]["Brand"] = st.selectbox(
             "Brand",
-            ["Toyota", "Honda", "Hyundai", "BMW"]
+            ["Toyota", "Honda", "Hyundai", "BMW"],
+            key="brand_dd"
         )
 
     with col2:
         st.markdown(render_tile("assets/fuel.jpeg"), unsafe_allow_html=True)
         st.session_state["filters"]["Fuel_Type"] = st.selectbox(
             "Fuel Type",
-            ["Petrol", "Diesel", "Electric"]
+            ["Petrol", "Diesel", "Electric"],
+            key="fuel_dd"
         )
 
     with col3:
         st.markdown(render_tile("assets/type.jpeg"), unsafe_allow_html=True)
         st.session_state["filters"]["Body_Type"] = st.selectbox(
             "Body Type",
-            ["SUV", "Sedan", "Hatchback"]
+            ["SUV", "Sedan", "Hatchback"],
+            key="body_dd"
         )
 
     with col4:
         st.markdown(render_tile("assets/transmission.jpeg"), unsafe_allow_html=True)
         st.session_state["filters"]["Transmission"] = st.selectbox(
             "Transmission",
-            ["Manual", "Automatic"]
+            ["Manual", "Automatic"],
+            key="trans_dd"
         )
 
     st.write("---")
@@ -396,16 +334,11 @@ def preferences_page():
             st.session_state["page"] = "book"
             st.rerun()
 
-    st.markdown('</div>', unsafe_allow_html=True)
-
 
 # -----------------------------
 # BOOK PAGE
 # -----------------------------
-
 def book_page():
-
-    st.markdown('<div class="card">', unsafe_allow_html=True)
 
     st.title("🚗 Book Your Car")
 
@@ -500,23 +433,14 @@ def book_page():
         if r and r.get("success"):
             st.success("Booking confirmed 🎉")
 
-    st.markdown('</div>', unsafe_allow_html=True)
-
 
 # -----------------------------
 # ROUTING
 # -----------------------------
-
 if st.session_state["page"] == "home":
-
-    landing_page()
-
-elif st.session_state["page"] == "login":
-
-    login_page()
+    home_page()
 
 elif st.session_state["user"] is None:
-
     login_page()
 
 else:
