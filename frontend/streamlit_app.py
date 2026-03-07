@@ -21,7 +21,6 @@ st.markdown("""
 background:black;
 }
 
-/* HERO SECTION */
 .hero-container{
 position:relative;
 width:100%;
@@ -39,7 +38,6 @@ object-fit:cover;
 z-index:0;
 }
 
-/* TEXT LAYOUT */
 .hero-overlay{
 position:absolute;
 top:0;
@@ -202,7 +200,7 @@ def home_page():
         st.session_state["page"] = "login"
         st.rerun()
 
-    hero_img = load_image_base64("assets/hero.jpg")
+    hero_img = load_image_base64("assets/land.jpg")
 
     st.markdown(f"""
     <div class="hero-container">
