@@ -17,85 +17,73 @@ st.set_page_config(page_title="AI Car Rental", layout="wide")
 st.markdown("""
 <style>
 
-.block-container{
-padding:0rem 0rem 0rem 0rem;
-}
-
 .main{
 background:black;
 }
 
 /* HERO SECTION */
-
 .hero-container{
-position:fixed;
-top:0;
-left:0;
-width:100vw;
+position:relative;
+width:100%;
 height:100vh;
 overflow:hidden;
 }
 
-.hero-container img{
+.hero-img{
+position:absolute;
+top:0;
+left:0;
 width:100%;
 height:100%;
 object-fit:cover;
+z-index:0;
 }
 
-/* DARK OVERLAY */
-
+/* TEXT LAYOUT */
 .hero-overlay{
 position:absolute;
 top:0;
 left:0;
 width:100%;
 height:100%;
-background:linear-gradient(
-to bottom,
-rgba(0,0,0,0.55),
-rgba(0,0,0,0.1),
-rgba(0,0,0,0.65)
-);
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+padding:60px;
+z-index:2;
 }
 
-/* TOP TEXT */
-
 .hero-top{
-position:absolute;
-top:80px;
-width:100%;
 text-align:center;
-color:white;
+margin-top:20px;
+}
+
+.hero-bottom{
+text-align:center;
+margin-bottom:40px;
 }
 
 .hero-title{
-font-size:54px;
+font-size:52px;
 font-weight:700;
-}
-
-.hero-sub{
-font-size:26px;
-margin-top:10px;
-}
-
-/* BOTTOM TEXT */
-
-.hero-bottom{
-position:absolute;
-bottom:80px;
-width:100%;
-text-align:center;
 color:white;
 }
 
+.hero-sub{
+font-size:28px;
+color:white;
+margin-top:10px;
+}
+
 .hero-tag{
-font-size:30px;
-font-weight:600;
+font-size:22px;
+color:white;
+margin-top:10px;
 }
 
 .hero-caption{
-font-size:20px;
-margin-top:8px;
+color:white;
+font-size:22px;
 }
 
 .stButton>button{
@@ -165,6 +153,41 @@ def safe_get(url):
 
 
 # -----------------------------
+# IMAGE HELPERS
+# -----------------------------
+def load_image_base64(path):
+    try:
+        with open(path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    except:
+        return ""
+
+
+def render_tile(image_path):
+    img64 = load_image_base64(image_path)
+    return f"""
+    <div style="
+        width:180px;
+        height:120px;
+        border-radius:12px;
+        overflow:hidden;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        background:#111;
+    ">
+        <img src="data:image/jpeg;base64,{img64}"
+            style="
+                width:100%;
+                height:100%;
+                object-fit:cover;
+            "
+        >
+    </div>
+    """
+
+
+# -----------------------------
 # HOME LANDING PAGE
 # -----------------------------
 def home_page():
@@ -179,22 +202,28 @@ def home_page():
         st.session_state["page"] = "login"
         st.rerun()
 
-    st.markdown("""
+    hero_img = load_image_base64("assets/hero.jpg")
+
+    st.markdown(f"""
     <div class="hero-container">
 
-        <img src="assets/car_images/hero.jpg">
+        <img class="hero-img"
+        src="data:image/jpeg;base64,{hero_img}">
 
-        <div class="hero-overlay"></div>
+        <div class="hero-overlay">
 
-        <div class="hero-top">
-            <div class="hero-title">Your next drive starts here</div>
-            <div class="hero-sub">Choose • Book • Hit the road</div>
-        </div>
+            <div class="hero-top">
+                <div class="hero-title">Your next drive starts here</div>
+                <div class="hero-sub">Choose • Book • Hit the road</div>
+                <div class="hero-tag">Renting made simple</div>
+            </div>
 
-        <div class="hero-bottom">
-            <div class="hero-tag">AI Powered Car Rental System</div>
-            <div class="hero-caption">Smart • Reliable • Affordable</div>
-            <div class="hero-caption">Experience the future of cars</div>
+            <div class="hero-bottom">
+                <div class="hero-caption">AI Powered Car Rental System</div>
+                <div class="hero-caption">Smart • Reliable • Affordable</div>
+                <div class="hero-caption">Experience the future of cars</div>
+            </div>
+
         </div>
 
     </div>
@@ -285,27 +314,35 @@ def preferences_page():
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
+        st.markdown(render_tile("assets/brand.jpeg"), unsafe_allow_html=True)
         st.session_state["filters"]["Brand"] = st.selectbox(
             "Brand",
             ["Toyota", "Honda", "Hyundai", "BMW"],
+            key="brand_dd"
         )
 
     with col2:
+        st.markdown(render_tile("assets/fuel.jpeg"), unsafe_allow_html=True)
         st.session_state["filters"]["Fuel_Type"] = st.selectbox(
             "Fuel Type",
             ["Petrol", "Diesel", "Electric"],
+            key="fuel_dd"
         )
 
     with col3:
+        st.markdown(render_tile("assets/type.jpeg"), unsafe_allow_html=True)
         st.session_state["filters"]["Body_Type"] = st.selectbox(
             "Body Type",
             ["SUV", "Sedan", "Hatchback"],
+            key="body_dd"
         )
 
     with col4:
+        st.markdown(render_tile("assets/transmission.jpeg"), unsafe_allow_html=True)
         st.session_state["filters"]["Transmission"] = st.selectbox(
             "Transmission",
             ["Manual", "Automatic"],
+            key="trans_dd"
         )
 
     st.write("---")
@@ -347,18 +384,51 @@ def book_page():
         return
 
     dropdown = []
+    rec_pairs = set()
+
+    for car in st.session_state["recommended_cars"]:
+
+        brand = car.get("Brand")
+        model = car.get("Model")
+
+        if not brand or not model:
+            continue
+
+        dropdown.append(f"{brand} {model} (For You)")
+        rec_pairs.add((brand, model))
 
     for c in cars:
-        dropdown.append(f"{c.get('Brand')} {c.get('Model')}")
+
+        brand = c.get("Brand") or c.get("brand")
+        model = c.get("Model") or c.get("model")
+
+        if (brand, model) not in rec_pairs:
+            dropdown.append(f"{brand} {model}")
 
     chosen = st.selectbox("Select Car", dropdown)
 
-    selcar = next(
-        c for c in cars
-        if f"{c.get('Brand')} {c.get('Model')}" == chosen
-    )
+    if "(For You)" in chosen:
 
-    price = selcar.get("price", 2000)
+        raw = chosen.replace(" (For You)", "")
+        brand, model = raw.split(" ", 1)
+
+        selcar = next(
+            c for c in st.session_state["recommended_cars"]
+            if c["Brand"] == brand and c["Model"] == model
+        )
+
+        price = 2000
+
+    else:
+
+        selcar = next(
+            c for c in cars
+            if f"{c.get('Brand') or c.get('brand')} {c.get('Model') or c.get('model')}" == chosen
+        )
+
+        price = selcar.get("price", 2000)
+
+    st.session_state["selected_car"] = selcar
 
     col1, col2 = st.columns(2)
 
@@ -374,11 +444,24 @@ def book_page():
 
     if st.button("Confirm Booking"):
 
+        real_car = next(
+            (
+                c for c in cars
+                if (c.get("Brand") or c.get("brand")) == (selcar.get("Brand") or selcar.get("brand"))
+                and (c.get("Model") or c.get("model")) == (selcar.get("Model") or selcar.get("model"))
+            ),
+            None
+        )
+
+        if not real_car:
+            st.error("Car not found in database")
+            return
+
         r = safe_post(
             f"{BACKEND_URL}/api/book",
             {
                 "user_id": str(st.session_state["user"]["_id"]),
-                "car_id": str(selcar["_id"])
+                "car_id": str(real_car["_id"])
             }
         )
 
