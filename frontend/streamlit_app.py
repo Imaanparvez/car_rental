@@ -11,6 +11,78 @@ if not BACKEND_URL:
 
 st.set_page_config(page_title="AI Car Rental", layout="wide")
 
+# -----------------------------
+# GLOBAL STYLES
+# -----------------------------
+st.markdown("""
+<style>
+
+.main{
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+}
+
+.hero-title{
+font-size:48px;
+font-weight:700;
+text-align:center;
+color:white;
+margin-top:80px;
+animation:fadeIn 1.2s ease-in-out;
+}
+
+.hero-sub{
+font-size:24px;
+text-align:center;
+color:#ddd;
+margin-top:15px;
+animation:fadeIn 1.8s ease-in-out;
+}
+
+.hero-tag{
+font-size:20px;
+text-align:center;
+color:#f2f2f2;
+margin-top:10px;
+animation:fadeIn 2.2s ease-in-out;
+}
+
+.hero-img{
+display:flex;
+justify-content:center;
+margin-top:40px;
+animation:fadeIn 2.6s ease-in-out;
+}
+
+.hero-caption{
+text-align:center;
+color:#ccc;
+font-size:18px;
+margin-top:15px;
+}
+
+@keyframes fadeIn{
+0%{opacity:0;transform:translateY(20px);}
+100%{opacity:1;transform:translateY(0);}
+}
+
+.stButton>button{
+border-radius:12px;
+height:45px;
+width:100%;
+font-weight:600;
+transition:0.3s;
+}
+
+.stButton>button:hover{
+transform:scale(1.05);
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# -----------------------------
+# SESSION STATE
+# -----------------------------
 if "user" not in st.session_state:
     st.session_state["user"] = None
 
@@ -101,75 +173,30 @@ def home_page():
 
     st.sidebar.title("Navigation")
 
-    if st.sidebar.button("Login"):
+    if st.sidebar.button("🔐 Login"):
         st.session_state["page"] = "login"
         st.rerun()
 
-    if st.sidebar.button("Sign Up"):
+    if st.sidebar.button("📝 Sign Up"):
         st.session_state["page"] = "login"
         st.rerun()
 
-    st.markdown("""
-    <div style="position:relative;width:100%;">
+    st.markdown('<div class="hero-title">Your next drive starts here</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-sub">Choose • Book • Hit the road</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-tag">Renting made simple</div>', unsafe_allow_html=True)
 
-    <img src="https://wallpapers.com/images/hd/black-car-4k-ju5i5dc1ig6lkqdm.jpg"
-    style="width:100%;height:85vh;object-fit:cover;border-radius:18px;filter:brightness(65%);">
+    st.markdown(
+        '<div class="hero-img"><img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70" width="650"></div>',
+        unsafe_allow_html=True
+    )
 
-    <!-- TITLE (TOP DARK AREA) -->
-    <div style="
-    position:absolute;
-    top:18%;
-    left:50%;
-    transform:translateX(-50%);
-    text-align:center;
-    ">
-
-    <h1 style="
-    color:white;
-    font-size:40px;
-    font-weight:700;">
-    AI Powered Car Rental System
-    </h1>
-
-    </div>
-
-    <!-- TEXT (BOTTOM DARK AREA) -->
-    <div style="
-    position:absolute;
-    bottom:18%;
-    left:50%;
-    transform:translateX(-50%);
-    text-align:center;
-    ">
-
-    <p style="color:white;font-size:18px;margin:6px;">
-    Your next drive starts here
-    </p>
-
-    <p style="color:white;font-size:18px;margin:6px;">
-    Choose • Book • Hit the road
-    </p>
-
-    <p style="color:#dddddd;font-size:16px;margin:6px;">
-    Renting made simple
-    </p>
-
-    <p style="color:#cccccc;font-size:15px;margin:4px;">
-    Smart • Reliable • Affordable
-    </p>
-
-    <p style="color:#cccccc;font-size:15px;margin:4px;">
-    Experience the future of cars
-    </p>
-
-    </div>
-
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="hero-caption"><h3>AI Powered Car Rental System</h3></div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-caption">Smart • Reliable • Affordable</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero-caption">Experience the future of cars</div>', unsafe_allow_html=True)
 
 
 # -----------------------------
-# SIDEBAR
+# SIDEBAR AFTER LOGIN
 # -----------------------------
 def render_sidebar():
 
@@ -185,7 +212,7 @@ def render_sidebar():
 
     if st.sidebar.button("🚪 Logout"):
         st.session_state.clear()
-        st.session_state["page"] = "login"
+        st.session_state["page"] = "home"
         st.rerun()
 
 
@@ -408,7 +435,7 @@ def book_page():
 
 
 # -----------------------------
-# APP ROUTING
+# ROUTING
 # -----------------------------
 if st.session_state["page"] == "home":
     home_page()
