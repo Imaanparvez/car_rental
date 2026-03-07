@@ -245,7 +245,6 @@ def home_page():
 
     <div class="bottom">
         <p>Smart • Reliable • Affordable</p>
-        <p>Experience the future of cars</p>
     </div>
 
     </div>
@@ -520,3 +519,4 @@ else:
 
     else:
         preferences_page()
+
