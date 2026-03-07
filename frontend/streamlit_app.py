@@ -193,7 +193,7 @@ def home_page():
         st.session_state["page"] = "login"
         st.rerun()
 
-    img64 = load_image_base64("frontend/assets/car_images/hero.jpg")
+    img64 = load_image_base64("assets/car_images/hero.jpg")
 
     st.markdown(f"""
     <div class="hero-container">
@@ -475,3 +475,4 @@ else:
 
     else:
         preferences_page()
+
