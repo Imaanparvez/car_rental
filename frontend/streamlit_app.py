@@ -113,58 +113,57 @@ def home_page():
     <div style="position:relative;width:100%;">
 
     <img src="https://wallpapers.com/images/hd/black-car-4k-ju5i5dc1ig6lkqdm.jpg"
-    style="width:100%;border-radius:16px;filter:brightness(60%);">
+    style="width:100%;height:85vh;object-fit:cover;border-radius:18px;filter:brightness(65%);">
 
+    <!-- TITLE (TOP DARK AREA) -->
     <div style="
     position:absolute;
-    top:45%;
+    top:18%;
     left:50%;
-    transform:translate(-50%,-50%);
+    transform:translateX(-50%);
     text-align:center;
     ">
 
-    <h2 style="
-    color:#FFC107;
-    font-size:36px;
-    font-weight:700;
-    margin-bottom:10px;">
-    AI Powered Car Rental System
-    </h2>
-
-    <p style="
+    <h1 style="
     color:white;
-    font-size:18px;
-    margin:4px;">
+    font-size:40px;
+    font-weight:700;">
+    AI Powered Car Rental System
+    </h1>
+
+    </div>
+
+    <!-- TEXT (BOTTOM DARK AREA) -->
+    <div style="
+    position:absolute;
+    bottom:18%;
+    left:50%;
+    transform:translateX(-50%);
+    text-align:center;
+    ">
+
+    <p style="color:white;font-size:18px;margin:6px;">
     Your next drive starts here
     </p>
 
-    <p style="
-    color:white;
-    font-size:18px;
-    margin:4px;">
+    <p style="color:white;font-size:18px;margin:6px;">
     Choose • Book • Hit the road
     </p>
 
-    <p style="
-    color:#dddddd;
-    font-size:16px;
-    margin-top:8px;">
+    <p style="color:#dddddd;font-size:16px;margin:6px;">
     Renting made simple
     </p>
 
-    <p style="
-    color:#cccccc;
-    font-size:15px;">
+    <p style="color:#cccccc;font-size:15px;margin:4px;">
     Smart • Reliable • Affordable
     </p>
 
-    <p style="
-    color:#cccccc;
-    font-size:15px;">
+    <p style="color:#cccccc;font-size:15px;margin:4px;">
     Experience the future of cars
     </p>
 
     </div>
+
     </div>
     """, unsafe_allow_html=True)
 
