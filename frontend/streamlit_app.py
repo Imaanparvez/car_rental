@@ -633,10 +633,10 @@ def confirmation_page():
     brand = car.get("Brand","").title()
     model = car.get("Model","").title()
 
-    st.markdown("<h1 style='text-align:center;'>🎉 Booking Confirmed</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align:center;'> Booking Confirmed</h1>", unsafe_allow_html=True)
 
     st.success(f"Your {brand} {model} has been booked successfully.")
-    st.info("🚚 The car will be delivered to your location.")
+    st.info("The car will be delivered to your location.")
 
     col1,col2,col3 = st.columns([1,2,1])
 
@@ -681,7 +681,7 @@ def contact_page():
             z-index: 1;
         "></div>
         <div style="position: relative; z-index: 2;">
-            <h1 style="font-size: 3rem; font-weight: 800; margin-bottom: 10px;">📞 Get in Touch</h1>
+            <h1 style="font-size: 3rem; font-weight: 800; margin-bottom: 10px;">Get in Touch</h1>
             <p style="font-size: 1.2rem; color: #f0f0f0;">
                 We are here to help you 24/7. Reach out to us for any inquiries or support.
             </p>
@@ -742,3 +742,4 @@ elif st.session_state["page"] == "confirmation":
 elif st.session_state["page"] == "contact":
 
     contact_page()
+
