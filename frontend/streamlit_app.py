@@ -169,37 +169,37 @@ def log_interaction(car_id, action):
 # -----------------------------
 with st.sidebar:
 
-    st.markdown("## 🚗 AI Car Rental")
+    st.markdown("## AI Car Rental")
 
     if st.session_state["user"] is None:
 
-        if st.button("🔐 Login"):
+        if st.button("Login"):
             st.session_state["page"] = "login"
             st.rerun()
 
-        if st.button("📝 Sign Up"):
+        if st.button("Sign Up"):
             st.session_state["page"] = "login"
             st.rerun()
 
     else:
 
-        if st.button("🏠 Home"):
+        if st.button("Home"):
             st.session_state["page"] = "home"
             st.rerun()
 
-        if st.button("🎛 Preferences"):
+        if st.button("Preferences"):
             st.session_state["page"] = "preferences"
             st.rerun()
 
-        if st.button("🚗 Book Car"):
+        if st.button("Book Car"):
             st.session_state["page"] = "book"
             st.rerun()
 
-        if st.button("📞 Contact Us"):
+        if st.button("Contact Us"):
             st.session_state["page"] = "contact"
             st.rerun()
 
-        if st.button("🚪 Logout"):
+        if st.button("Logout"):
             st.session_state["user"] = None
             st.session_state["recommended_cars"] = []
             st.session_state["cf_cars"] = []
@@ -250,9 +250,9 @@ def home_page():
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
         if st.session_state["user"] is None:
-             btn_label = "Get Started Now 🚀"
+             btn_label = "Get Started Now "
         else:
-             btn_label = "Explore Cars 🚗"
+             btn_label = "Explore Cars "
              
         if st.button(btn_label, type="primary"):
              if st.session_state["user"] is None:
@@ -314,7 +314,7 @@ def home_page():
 # -----------------------------
 def login_page():
 
-    st.markdown("<h1 style='text-align: center;'>🔐 Login / Sign Up</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>Login / Sign Up</h1>", unsafe_allow_html=True)
     st.write("")
 
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -397,7 +397,7 @@ def preferences_page():
                                   ["Select your choice","Any","Low Power","Medium Power","High Power"])
             st.write("")
 
-            if st.button("📌 Recommend"):
+            if st.button("Recommend"):
 
                 payload = {
                     "user_id": st.session_state["user"]["_id"],
@@ -468,7 +468,7 @@ def book_page():
 
     st.divider()
 
-    st.markdown('<h3 class="center-title">⭐ Recommended For You</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 class="center-title">Recommended For You</h3>', unsafe_allow_html=True)
 
     cols = st.columns(3)
 
@@ -499,7 +499,7 @@ def book_page():
                         st.session_state["page"]="payment"
                         st.rerun()
 
-    st.markdown('<h3 class="center-title">👥 Previous Users Also Viewed</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 class="center-title">Previous Users Also Viewed</h3>', unsafe_allow_html=True)
 
     cols = st.columns(3)
 
@@ -538,7 +538,7 @@ def book_page():
         if history and len(history) > 0:
             with st.container(border=True):
                 for item in history:
-                    st.markdown(f"**🚗 {item['car']}** — Booked {item['count']} time(s)")
+                    st.markdown(f"**{item['car']}** — Booked {item['count']} time(s)")
         else:
             st.info("You don't have any past bookings yet.")
 
@@ -557,7 +557,7 @@ def payment_page():
     cc = car.get("Engine_CC",1500)
     mileage = car.get("Mileage","")
 
-    st.markdown("<h1 style='text-align: center;'>💳 Payment Details</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>Payment Details</h1>", unsafe_allow_html=True)
     st.write("")
 
     col1, col2, col3 = st.columns([1, 4, 1])
@@ -610,7 +610,7 @@ def payment_page():
 
                     if data.get("success"):
 
-                        st.success("✅ Car booked successfully. It will be delivered to your location.")
+                        st.success("Car booked successfully. It will be delivered to your location.")
 
                         st.session_state["booking_success"] = True
                         st.session_state["page"] = "confirmation"
@@ -635,7 +635,7 @@ def confirmation_page():
 
     st.markdown("<h1 style='text-align:center;'>🎉 Booking Confirmed</h1>", unsafe_allow_html=True)
 
-    st.success(f"✅ Your {brand} {model} has been booked successfully.")
+    st.success(f"Your {brand} {model} has been booked successfully.")
     st.info("🚚 The car will be delivered to your location.")
 
     col1,col2,col3 = st.columns([1,2,1])
@@ -695,16 +695,13 @@ def contact_page():
         st.markdown("### Contact Information")
         st.write("Feel free to contact us directly using the information below.")
         
-        with st.container(border=True):
-            st.markdown("#### 📍 Location")
-            st.markdown("<p style='color: #666; font-size: 16px;'>Srinagar, Kashmir</p>", unsafe_allow_html=True)
 
         with st.container(border=True):
-            st.markdown("#### 📞 Phone")
+            st.markdown("#### Phone")
             st.markdown("<p style='color: #666; font-size: 16px;'>+91 6005333097</p>", unsafe_allow_html=True)
             
         with st.container(border=True):
-            st.markdown("#### 📧 Email")
+            st.markdown("#### Email")
             st.markdown("<p style='color: #666; font-size: 16px;'>support@aicarrental.com</p>", unsafe_allow_html=True)
 
     with col2:
@@ -716,7 +713,7 @@ def contact_page():
             
             if st.button("Submit Message", type="primary"):
                 if name and email and message:
-                    st.success("✅ Thank you! Your message has been sent successfully.")
+                    st.success("Thank you! Your message has been sent successfully.")
                 else:
                     st.error("Please fill out all fields before submitting.")
 
@@ -743,4 +740,5 @@ elif st.session_state["page"] == "confirmation":
     confirmation_page()
 
 elif st.session_state["page"] == "contact":
+
     contact_page()
