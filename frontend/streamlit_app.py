@@ -1,10 +1,10 @@
 import streamlit as st
 import requests
 from datetime import date, timedelta
-import base64
+import pandas as pd
 import os
 
-BACKEND_URL = os.environ.get("BACKEND_URL")
+BACKEND_URL = os.environ["BACKEND_URL"]
 
 st.set_page_config(page_title="AI Car Rental", layout="wide")
 
@@ -19,12 +19,12 @@ st.markdown("""
 footer{visibility:hidden;}
 
 [data-testid="stAppViewContainer"]{padding:0;}
-.block-container{padding:0 !important;max-width:100% !important;}
+.block-container{padding-top:1rem;padding-left:2rem;padding-right:2rem;max-width:1400px;margin:auto;}
 
 .hero{
 position:relative;
 width:100vw;
-height:100vh;
+height:85vh;
 margin-left:calc(-50vw + 50%);
 overflow:hidden;
 }
@@ -59,8 +59,24 @@ transition:0.3s;
 transform:scale(1.05);
 }
 
+.card{
+background:white;
+padding:20px;
+border-radius:12px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+text-align:center;
+margin-bottom:20px;
+}
+
+.center-title{
+text-align:center;
+margin-top:30px;
+margin-bottom:10px;
+}
+
 </style>
 """, unsafe_allow_html=True)
+
 
 # -----------------------------
 # SESSION STATE
@@ -73,6 +89,16 @@ if "page" not in st.session_state:
 
 if "recommended_cars" not in st.session_state:
     st.session_state["recommended_cars"] = []
+
+if "cf_cars" not in st.session_state:
+    st.session_state["cf_cars"] = []
+
+if "selected_car" not in st.session_state:
+    st.session_state["selected_car"] = None
+
+if "booking_success" not in st.session_state:
+    st.session_state["booking_success"] = False
+
 
 # -----------------------------
 # API HELPERS
@@ -119,38 +145,7 @@ def log_interaction(car_id, action):
 
 
 # -----------------------------
-# IMAGE HELPER
-# -----------------------------
-def load_image_base64(path):
-    try:
-        with open(path, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    except:
-        return ""
-
-
-def render_tile(image_path):
-
-    img64 = load_image_base64(image_path)
-
-    return f"""
-    <div style="
-        width:180px;
-        height:120px;
-        border-radius:12px;
-        overflow:hidden;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        background:#111;">
-        <img src="data:image/jpeg;base64,{img64}"
-        style="width:100%;height:100%;object-fit:cover;">
-    </div>
-    """
-
-
-# -----------------------------
-# SIDEBAR NAVIGATION
+# SIDEBAR
 # -----------------------------
 with st.sidebar:
 
@@ -180,9 +175,14 @@ with st.sidebar:
             st.session_state["page"] = "book"
             st.rerun()
 
+        if st.button("📞 Contact Us"):
+            st.session_state["page"] = "contact"
+            st.rerun()
+
         if st.button("🚪 Logout"):
             st.session_state["user"] = None
             st.session_state["recommended_cars"] = []
+            st.session_state["cf_cars"] = []
             st.session_state["page"] = "home"
             st.rerun()
 
@@ -196,12 +196,11 @@ def home_page():
     <div class="hero">
     <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70">
 
-    <div style="position:absolute;top:6%;width:100%;text-align:center;color:white;">
+    <div style="position:absolute;top:10%;width:100%;text-align:center;color:white;">
         <h1>Your next drive starts here</h1>
         <h3>Choose • Book • Hit the road</h3>
         <p>Renting made simple</p>
     </div>
-
     </div>
     """, unsafe_allow_html=True)
 
@@ -218,9 +217,9 @@ def login_page():
     with tab1:
 
         email = st.text_input("Email", key="login_email")
-        password = st.text_input("Password", type="password", key="login_pass")
+        password = st.text_input("Password", type="password", key="login_password")
 
-        if st.button("Login", key="login_button"):
+        if st.button("Login"):
 
             user = safe_post(
                 f"{BACKEND_URL}/api/login",
@@ -237,9 +236,9 @@ def login_page():
         name = st.text_input("Name", key="signup_name")
         email = st.text_input("Email", key="signup_email")
         phone = st.text_input("Phone", key="signup_phone")
-        password = st.text_input("Password", type="password", key="signup_pass")
+        password = st.text_input("Password", type="password", key="signup_password")
 
-        if st.button("Sign Up", key="signup_button"):
+        if st.button("Sign Up"):
 
             r = safe_post(
                 f"{BACKEND_URL}/api/signup",
@@ -262,144 +261,269 @@ def preferences_page():
 
     st.title("🎛 Choose Your Preferences")
 
-    col1, col2, col3 = st.columns(3)
+    brand = st.selectbox("Car Brand",
+                         ["Select your choice","Kia","Honda","Toyota","BMW","Hyundai","Maruti"])
 
-    with col1:
-        st.markdown(render_tile("assets/brand.jpeg"), unsafe_allow_html=True)
+    fuel = st.selectbox("Fuel Type",
+                        ["Select your choice","Petrol","Diesel","Electric"])
 
-        brand = st.selectbox(
-            "Car Brand",
-            ["Select your choice","Kia","Honda","Toyota","BMW","Hyundai","Maruti"]
-        )
+    body = st.selectbox("Body Type",
+                        ["Select your choice","SUV","Sedan","Hatchback"])
 
-    with col2:
-        st.markdown(render_tile("assets/fuel.jpeg"), unsafe_allow_html=True)
+    mileage = st.selectbox("Mileage Preference",
+                           ["Select your choice","Any","Low","Medium","High"])
 
-        fuel = st.selectbox(
-            "Fuel Type",
-            ["Select your choice","Petrol","Diesel","Electric"]
-        )
-
-    with col3:
-        st.markdown(render_tile("assets/type.jpeg"), unsafe_allow_html=True)
-
-        body = st.selectbox(
-            "Body Type",
-            ["Select your choice","SUV","Sedan","Hatchback"]
-        )
-
-    col4, col5 = st.columns(2)
-
-    with col4:
-        mileage = st.selectbox(
-            "Mileage Preference",
-            ["Select your choice","Any","Low","Medium","High"]
-        )
-
-    with col5:
-        engine = st.selectbox(
-            "Engine Power Preference",
-            ["Select your choice","Any","Low Power","Medium Power","High Power"]
-        )
+    engine = st.selectbox("Engine Power Preference",
+                          ["Select your choice","Any","Low Power","Medium Power","High Power"])
 
     if st.button("📌 Recommend"):
 
         payload = {
             "user_id": st.session_state["user"]["_id"],
-            "Brand": brand,
-            "Fuel_Type": fuel,
-            "Body_Type": body,
-            "Mileage": mileage,
-            "Engine_CC": engine
+            "preferences":{
+                "Brand":brand,
+                "Fuel_Type":fuel,
+                "Body_Type":body,
+                "Mileage":mileage,
+                "Engine_CC":engine
+            }
         }
 
         rec = safe_post(f"{BACKEND_URL}/api/recommend", payload)
 
         if rec:
-            st.session_state["recommended_cars"] = rec
+
+            st.session_state["recommended_cars"] = rec.get("cbf",[])
+            st.session_state["cf_cars"] = rec.get("cf",[])
+
             st.session_state["page"] = "book"
             st.rerun()
 
 
 # -----------------------------
-# BOOK PAGE
+# BOOK DASHBOARD
 # -----------------------------
 def book_page():
 
-    st.title("🚗 Book Your Car")
+    st.title("🚗 Car Dashboard")
 
     cars = safe_get(f"{BACKEND_URL}/api/cars")
 
-    dropdown = []
+    st.subheader("🔍 Search Cars")
 
-    for car in st.session_state["recommended_cars"]:
-        dropdown.append(f"{car['Brand']} {car['Model']} (For You)")
+    search = st.text_input("Search by brand or model")
 
-    for c in cars:
-        dropdown.append(f"{c['Brand']} {c['Model']}")
+    if search:
 
-    chosen = st.selectbox("Select Car", dropdown)
+        seen=set()
 
-    chosen_clean = chosen.replace(" (For You)", "")
+        for i,c in enumerate(cars):
 
-    brand, model = chosen_clean.split(" ",1)
+            name=f"{c['Brand']} {c['Model']}".title()
 
-    selcar = None
+            if search.lower() in name.lower():
 
-    for c in cars:
-        if (
-            c.get("Brand","").lower() == brand.lower()
-            and
-            c.get("Model","").lower() == model.lower()
-        ):
-            selcar = c
-            break
+                if name not in seen:
 
-    if selcar is None:
-        st.error("Car not found")
-        st.stop()
+                    seen.add(name)
 
-    # -----------------------------
-    # CLICK ACTION
-    # -----------------------------
-    if "(For You)" in chosen:
-        log_interaction(selcar["_id"], "click")
+                    if st.button(f"{name} - View Car", key=f"search_{i}"):
 
-    # -----------------------------
-    # VIEW ACTION
-    # -----------------------------
-    log_interaction(selcar["_id"], "view")
+                        car_id = c.get("_id") or c.get("Car_ID")
 
-    price = selcar.get("price",2000)
+                        log_interaction(car_id,"search")
+                        log_interaction(car_id,"view")
 
-    pickup = st.date_input("Pickup Date", date.today())
-    drop = st.date_input("Return Date", date.today()+timedelta(days=1))
+                        st.session_state["selected_car"]=c
+                        st.session_state["page"]="payment"
+                        st.rerun()
 
-    days = max((drop - pickup).days, 1)
+    st.divider()
 
-    st.write(f"### Total Cost: ₹{days*price}")
+    st.markdown('<h3 class="center-title">⭐ Recommended For You</h3>', unsafe_allow_html=True)
 
-    if st.button("Confirm Booking"):
+    cols = st.columns(3)
 
-        # -----------------------------
-        # BOOK ACTION
-        # -----------------------------
-        log_interaction(selcar["_id"], "book")
+    for i,car in enumerate(st.session_state["recommended_cars"]):
 
-        r = safe_post(
-            f"{BACKEND_URL}/api/book",
-            {
-                "user_id": st.session_state["user"]["_id"],
-                "car_id": selcar["_id"]
-            }
-        )
+        brand = car["Brand"].title()
+        model = car["Model"].title()
 
-        if r and r.get("success"):
-            st.success("Booking confirmed 🎉")
+        with cols[i%3]:
+
+            st.markdown('<div class="card">', unsafe_allow_html=True)
+
+            st.markdown(f"### {brand} {model}")
+
+            if st.button("View Car", key=f"cbf_{i}"):
+
+                real_car=None
+                for c in cars:
+                    if c["Brand"].lower()==car["Brand"].lower() and c["Model"].lower()==car["Model"].lower():
+                        real_car=c
+                        break
+
+                if real_car:
+                    car_id = real_car["_id"]
+                    log_interaction(car_id,"view")
+                    st.session_state["selected_car"]=real_car
+                    st.session_state["page"]="payment"
+                    st.rerun()
+
+            st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown('<h3 class="center-title">👥 Previous Users Also Viewed</h3>', unsafe_allow_html=True)
+
+    cols = st.columns(3)
+
+    for i,car in enumerate(st.session_state["cf_cars"]):
+
+        brand = car["Brand"].title()
+        model = car["Model"].title()
+
+        with cols[i%3]:
+
+            st.markdown('<div class="card">', unsafe_allow_html=True)
+
+            st.markdown(f"### {brand} {model}")
+
+            if st.button("View Car", key=f"cf_{i}"):
+
+                real_car=None
+                for c in cars:
+                    if c["Brand"].lower()==car["Brand"].lower() and c["Model"].lower()==car["Model"].lower():
+                        real_car=c
+                        break
+
+                if real_car:
+                    car_id = real_car["_id"]
+                    log_interaction(car_id,"view")
+                    st.session_state["selected_car"]=real_car
+                    st.session_state["page"]="payment"
+                    st.rerun()
+
+            st.markdown("</div>", unsafe_allow_html=True)
 
 
 # -----------------------------
-# PAGE ROUTING
+# PAYMENT PAGE
+# -----------------------------
+# -----------------------------
+# PAYMENT PAGE
+# -----------------------------
+def payment_page():
+
+    car = st.session_state["selected_car"]
+
+    brand = car.get("Brand","").title()
+    model = car.get("Model","").title()
+
+    year = car.get("Year","")
+    cc = car.get("Engine_CC",1500)
+    mileage = car.get("Mileage","")
+
+    st.title("💳 Payment")
+
+    col1,col2 = st.columns([1,1])
+
+    with col1:
+
+        st.markdown(f"""
+        ### {brand} {model}
+
+        **Year:** {year}
+
+        **Engine CC:** {cc}
+
+        **Mileage:** {mileage}
+        """)
+
+    with col2:
+
+        pickup = st.date_input("Pickup Date", date.today())
+        drop = st.date_input("Return Date", date.today()+timedelta(days=1))
+
+        days = max((drop - pickup).days, 1)
+
+        price_per_day = 800 + cc * 0.8
+        total_price = days * price_per_day
+
+        st.markdown(f"### Total Price: ₹{int(total_price)}")
+
+        # -----------------------------
+        # CONFIRM PAYMENT BUTTON
+        # -----------------------------
+        if st.button("Confirm Payment"):
+
+            car_id = car.get("_id") or car.get("Car_ID")
+
+            try:
+
+                response = requests.post(
+                    f"{BACKEND_URL}/api/book",
+                    json={
+                        "user_id": st.session_state["user"]["_id"],
+                        "car_id": car_id
+                    }
+                )
+
+                data = response.json()
+
+                if data.get("success"):
+
+                    st.success("✅ Car booked successfully. It will be delivered to your location.")
+
+                    st.session_state["booking_success"] = True
+                    st.session_state["page"] = "confirmation"
+
+                    st.rerun()
+
+                else:
+                    st.error("Booking failed")
+
+            except Exception as e:
+                st.error(f"Error: {e}")
+
+# -----------------------------
+# CONFIRMATION PAGE
+# -----------------------------
+def confirmation_page():
+
+    car = st.session_state["selected_car"]
+
+    brand = car.get("Brand","").title()
+    model = car.get("Model","").title()
+
+    st.markdown("<h1 style='text-align:center;'>🎉 Booking Confirmed</h1>", unsafe_allow_html=True)
+
+    st.success(f"✅ Your {brand} {model} has been booked successfully.")
+    st.info("🚚 The car will be delivered to your location.")
+
+    col1,col2,col3 = st.columns([1,2,1])
+
+    with col2:
+
+        if st.button("Go to Dashboard"):
+
+            st.session_state["page"] = "book"
+            st.session_state["booking_success"] = False
+            st.rerun()
+
+
+# -----------------------------
+# CONTACT PAGE
+# -----------------------------
+def contact_page():
+
+    st.title("📞 Contact Us")
+
+    st.write("Email: support@aicarrental.com")
+    st.write("Phone: +91 9876543210")
+    st.write("Location: Bangalore, India")
+
+
+# -----------------------------
+# ROUTING
 # -----------------------------
 if st.session_state["page"] == "home":
     home_page()
@@ -412,3 +536,12 @@ elif st.session_state["page"] == "preferences":
 
 elif st.session_state["page"] == "book":
     book_page()
+
+elif st.session_state["page"] == "payment":
+    payment_page()
+
+elif st.session_state["page"] == "confirmation":
+    confirmation_page()
+
+elif st.session_state["page"] == "contact":
+    contact_page()

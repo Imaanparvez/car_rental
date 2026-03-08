@@ -10,15 +10,22 @@ df = pd.read_csv("../backend/dataset/car_rental_cbf.csv")
 
 df.fillna("", inplace=True)
 
-# convert numeric columns
+# -----------------------------
+# CONVERT NUMERIC COLUMNS
+# -----------------------------
 df["Mileage"] = pd.to_numeric(df["Mileage"], errors="coerce").fillna(0)
 df["Engine_CC"] = pd.to_numeric(df["Engine_CC"], errors="coerce").fillna(0)
+df["Year"] = pd.to_numeric(df["Year"], errors="coerce").fillna(0)
 
-# normalize text
+# -----------------------------
+# NORMALIZE TEXT
+# -----------------------------
 for col in ["Brand", "Fuel_Type", "Body_Type"]:
     df[col] = df[col].astype(str).str.lower()
 
-# combined text
+# -----------------------------
+# COMBINED TEXT FEATURES
+# -----------------------------
 df["combined_text"] = (
     df["Brand"] + " " +
     df["Fuel_Type"] + " " +
@@ -30,7 +37,6 @@ df["combined_text"] = (
 # -----------------------------
 tfidf = TfidfVectorizer(stop_words="english")
 tfidf_matrix = tfidf.fit_transform(df["combined_text"])
-
 
 # -----------------------------
 # MILEAGE FILTER
@@ -73,7 +79,7 @@ def cc_filter(dataframe, category):
 
 
 # -----------------------------
-# RECOMMENDER
+# MAIN RECOMMENDER
 # -----------------------------
 def recommend_cbf(prefs, top_n=5):
 
@@ -88,71 +94,105 @@ def recommend_cbf(prefs, top_n=5):
     if not user_text.strip():
         user_text = "car"
 
-    # similarity
+    # -----------------------------
+    # TEXT SIMILARITY
+    # -----------------------------
     user_vector = tfidf.transform([user_text])
-    scores = cosine_similarity(user_vector, tfidf_matrix)[0]
+    similarity_scores = cosine_similarity(user_vector, tfidf_matrix)[0]
 
     df_copy = df.copy()
-    df_copy["similarity_score"] = scores
+    df_copy["similarity_score"] = similarity_scores
 
-    # apply filters
+    # -----------------------------
+    # NUMERIC SCORING BOOST
+    # -----------------------------
+    df_copy["numeric_score"] = (
+        (df_copy["Mileage"] / df_copy["Mileage"].max()) * 0.3 +
+        (df_copy["Engine_CC"] / df_copy["Engine_CC"].max()) * 0.2
+    )
+
+    # final score
+    df_copy["final_score"] = (
+        df_copy["similarity_score"] * 0.7 +
+        df_copy["numeric_score"] * 0.3
+    )
+
+    # -----------------------------
+    # APPLY USER FILTERS
+    # -----------------------------
     df_filtered = mileage_filter(df_copy, prefs.get("Mileage"))
     df_filtered = cc_filter(df_filtered, prefs.get("Engine_CC"))
 
     if df_filtered.empty:
         df_filtered = df_copy
 
-    # sort by similarity
+    # -----------------------------
+    # REMOVE DUPLICATE MODELS
+    # -----------------------------
+    df_filtered = df_filtered.drop_duplicates(
+        subset=["Brand", "Model"]
+    )
+
+    # -----------------------------
+    # SORT BY FINAL SCORE
+    # -----------------------------
     sorted_df = df_filtered.sort_values(
-        by="similarity_score",
+        by="final_score",
         ascending=False
     )
 
     # -----------------------------
-    # TOP 2 SAME BRAND
+    # SAME BRAND (LIMIT 2)
     # -----------------------------
     same_brand = sorted_df[
         sorted_df["Brand"] == user_brand
     ].head(2)
 
     # -----------------------------
-    # UNIQUE OTHER BRANDS
+    # OTHER BRANDS
     # -----------------------------
     other_brands = sorted_df[
         sorted_df["Brand"] != user_brand
     ]
 
-    unique_brand_rows = []
-
-    seen_brands = set()
+    unique_rows = []
+    seen_models = set(same_brand["Model"].tolist())
 
     for _, row in other_brands.iterrows():
 
-        brand = row["Brand"]
+        model = row["Model"]
 
-        if brand not in seen_brands:
-            unique_brand_rows.append(row)
-            seen_brands.add(brand)
+        if model not in seen_models:
+            unique_rows.append(row)
+            seen_models.add(model)
 
-        if len(unique_brand_rows) == (top_n - len(same_brand)):
+        if len(unique_rows) == (top_n - len(same_brand)):
             break
 
-    other_df = pd.DataFrame(unique_brand_rows)
+    other_df = pd.DataFrame(unique_rows)
 
     # -----------------------------
     # FINAL RESULT
     # -----------------------------
     final_df = pd.concat([same_brand, other_df])
 
+    final_df = final_df.drop_duplicates(
+        subset=["Brand", "Model"]
+    )
+
     final_df = final_df.head(top_n)
 
+    # -----------------------------
+    # RETURN RESULTS
+    # -----------------------------
     return final_df[[
         "Car_ID",
         "Brand",
         "Model",
+        "Year",
         "Fuel_Type",
         "Body_Type",
         "Mileage",
         "Engine_CC",
-        "similarity_score"
+        "final_score"
     ]].to_dict(orient="records")

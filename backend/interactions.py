@@ -5,19 +5,23 @@ from datetime import datetime
 # -----------------------------------
 # GENERAL USER INTERACTIONS
 # -----------------------------------
-def log_interaction(user_id, car_id, action):
+def log_interaction(user_id, car_id=None, action="view"):
 
-    allowed_actions = ["click", "view", "book"]
+    allowed_actions = ["view", "book", "search"]
 
     if action not in allowed_actions:
         raise ValueError(f"Invalid interaction action: {action}")
 
-    interactions_col.insert_one({
+    doc = {
         "user_id": user_id,
-        "car_id": car_id,
         "action": action,
         "timestamp": datetime.utcnow()
-    })
+    }
+
+    if car_id:
+        doc["car_id"] = car_id
+
+    interactions_col.insert_one(doc)
 
 
 # -----------------------------------
