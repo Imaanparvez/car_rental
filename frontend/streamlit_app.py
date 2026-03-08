@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 from datetime import date, timedelta
 import base64
+import os
 
 BACKEND_URL = os.environ.get("BACKEND_URL")
 
