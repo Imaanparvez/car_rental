@@ -6,16 +6,18 @@ from bson import ObjectId
 
 from auth import login_user, register_user
 from cars import get_all_cars
-from interactions import log_booking_interaction
+from interactions import log_booking_interaction, log_interaction
 from recommender import recommend_cbf
 
-# -----------------------------------------------------
-# APP + CORS + LOGGING
-# -----------------------------------------------------
+
+# ------------------------------------------
+# APP SETUP
+# ------------------------------------------
 app = Flask(__name__)
 CORS(app)
 
 logging.basicConfig(level=logging.DEBUG)
+
 
 @app.before_request
 def log_request():
@@ -24,13 +26,14 @@ def log_request():
     logging.debug(f"BODY: {request.get_json(silent=True)}")
 
 
-# -----------------------------------------------------
+# ------------------------------------------
 # LOGIN
-# -----------------------------------------------------
+# ------------------------------------------
 @app.route("/api/login", methods=["POST"])
 def api_login():
     try:
         data = request.get_json()
+
         if not data:
             return jsonify({"error": "Missing request body"}), 400
 
@@ -39,10 +42,7 @@ def api_login():
         if not user:
             return jsonify({"error": "Invalid credentials"}), 401
 
-        # Convert ObjectId → string
         user["_id"] = str(user["_id"])
-
-        # Remove password (bytes not JSON serializable)
         user.pop("password", None)
 
         return jsonify({"user": user}), 200
@@ -52,119 +52,130 @@ def api_login():
         return jsonify({"error": str(e)}), 500
 
 
-# -----------------------------------------------------
+# ------------------------------------------
 # SIGNUP
-# -----------------------------------------------------
+# ------------------------------------------
 @app.route("/api/signup", methods=["POST"])
 def api_signup():
     try:
         data = request.get_json()
+
         if not data:
-            return jsonify({"success": False, "error": "Missing request body"}), 400
+            return jsonify({"success": False}), 400
 
         ok = register_user(
             data.get("name"),
             data.get("email"),
             data.get("phone"),
-            data.get("password"),
+            data.get("password")
         )
 
         return jsonify({"success": ok}), 200
 
     except Exception as e:
         logging.exception("SIGNUP ERROR")
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-# -----------------------------------------------------
+# ------------------------------------------
 # GET ALL CARS
-# -----------------------------------------------------
+# ------------------------------------------
 @app.route("/api/cars", methods=["GET"])
 def api_cars():
+
     try:
         cars = get_all_cars()
 
-        for c in cars:
-            c["_id"] = str(c["_id"])
+        for car in cars:
+            car["_id"] = str(car["_id"])
 
-        return jsonify(cars), 200
+        return jsonify(cars)
 
     except Exception as e:
         logging.exception("GET CARS ERROR")
         return jsonify({"error": str(e)}), 500
 
 
-# -----------------------------------------------------
-# RECOMMENDATIONS 
-# -----------------------------------------------------
-@app.route("/recommend", methods=["POST"])
-def recommend():
+# ------------------------------------------
+# RECOMMENDATIONS (FIXED ROUTE)
+# ------------------------------------------
+@app.route("/api/recommend", methods=["POST"])
+def api_recommend():
+
     try:
         data = request.get_json()
 
         if not data:
             return jsonify({"error": "Missing request body"}), 400
 
-        required = ["Brand", "Fuel_Type", "Transmission", "Body_Type"]
-        missing = [k for k in required if k not in data]
-
-        if missing:
-            return jsonify({
-                "error": "Missing fields",
-                "missing": missing
-            }), 400
-
         results = recommend_cbf(data)
-
-        # 🔥 CRITICAL FIX: ensure JSON serializable
-        if hasattr(results, "to_dict"):
-            results = results.to_dict(orient="records")
-        elif hasattr(results, "tolist"):
-            results = results.tolist()
 
         return jsonify(results), 200
 
     except Exception as e:
-        logging.exception("RECOMMENDATION ERROR")
+        logging.exception("RECOMMEND ERROR")
+
         return jsonify({
             "error": "Recommendation failed",
             "details": str(e)
         }), 500
 
 
-# -----------------------------------------------------
-# BOOKING
-# -----------------------------------------------------
-@app.route("/api/book", methods=["POST"])
-def api_book():
+# ------------------------------------------
+# USER INTERACTIONS
+# ------------------------------------------
+@app.route("/api/interact", methods=["POST"])
+def api_interact():
+
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({"success": False, "error": "Missing request body"}), 400
+
+        user_id = ObjectId(data["user_id"])
+        car_id = ObjectId(data["car_id"])
+        action = data["action"]
+
+        log_interaction(user_id, car_id, action)
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        logging.exception("INTERACTION ERROR")
+        return jsonify({"success": False})
+
+
+# ------------------------------------------
+# BOOK CAR
+# ------------------------------------------
+@app.route("/api/book", methods=["POST"])
+def api_book():
+
+    try:
+        data = request.get_json()
 
         log_booking_interaction(
             ObjectId(data["user_id"]),
             ObjectId(data["car_id"])
         )
 
-        return jsonify({"success": True}), 200
+        return jsonify({"success": True})
 
     except Exception as e:
         logging.exception("BOOK ERROR")
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"success": False})
 
 
-# -----------------------------------------------------
+# ------------------------------------------
 # ROOT CHECK
-# -----------------------------------------------------
+# ------------------------------------------
 @app.route("/")
 def home():
-    return jsonify({"status": "Flask backend running"}), 200
+    return jsonify({"status": "Flask backend running"})
 
 
-# -----------------------------------------------------
-# RUN
-# -----------------------------------------------------
+# ------------------------------------------
+# RUN SERVER
+# ------------------------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
+
     app.run(host="0.0.0.0", port=port)

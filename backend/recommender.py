@@ -3,118 +3,156 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+# -----------------------------
+# LOAD DATASET
+# -----------------------------
 df = pd.read_csv("../backend/dataset/car_rental_cbf.csv")
 
 df.fillna("", inplace=True)
 
+# convert numeric columns
 df["Mileage"] = pd.to_numeric(df["Mileage"], errors="coerce").fillna(0)
 df["Engine_CC"] = pd.to_numeric(df["Engine_CC"], errors="coerce").fillna(0)
-df["Year"] = pd.to_numeric(df["Year"], errors="coerce").fillna(0)
 
-for col in ["Brand", "Fuel_Type", "Transmission", "Body_Type"]:
-    df[col] = df[col].str.lower()
+# normalize text
+for col in ["Brand", "Fuel_Type", "Body_Type"]:
+    df[col] = df[col].astype(str).str.lower()
 
+# combined text
 df["combined_text"] = (
     df["Brand"] + " " +
     df["Fuel_Type"] + " " +
-    df["Transmission"] + " " +
     df["Body_Type"]
 )
 
+# -----------------------------
+# TFIDF MODEL
+# -----------------------------
 tfidf = TfidfVectorizer(stop_words="english")
-car_tfidf_matrix = tfidf.fit_transform(df["combined_text"])
+tfidf_matrix = tfidf.fit_transform(df["combined_text"])
 
 
-def apply_numeric_filters(dataframe, prefs):
-    filtered = dataframe.copy()
+# -----------------------------
+# MILEAGE FILTER
+# -----------------------------
+def mileage_filter(dataframe, category):
 
-    if prefs.get("min_mileage") is not None:
-        filtered = filtered[
-            filtered["Mileage"] >= prefs["min_mileage"]
+    if category == "Low":
+        return dataframe[dataframe["Mileage"] < 15]
+
+    if category == "Medium":
+        return dataframe[
+            (dataframe["Mileage"] >= 15) &
+            (dataframe["Mileage"] < 22)
         ]
 
-    if prefs.get("max_engine_cc") is not None:
-        filtered = filtered[
-            filtered["Engine_CC"] <= prefs["max_engine_cc"]
+    if category == "High":
+        return dataframe[dataframe["Mileage"] >= 22]
+
+    return dataframe
+
+
+# -----------------------------
+# ENGINE FILTER
+# -----------------------------
+def cc_filter(dataframe, category):
+
+    if category == "Low Power":
+        return dataframe[dataframe["Engine_CC"] < 1200]
+
+    if category == "Medium Power":
+        return dataframe[
+            (dataframe["Engine_CC"] >= 1200) &
+            (dataframe["Engine_CC"] < 2000)
         ]
 
-    return filtered
+    if category == "High Power":
+        return dataframe[dataframe["Engine_CC"] >= 2000]
+
+    return dataframe
 
 
+# -----------------------------
+# RECOMMENDER
+# -----------------------------
 def recommend_cbf(prefs, top_n=5):
 
-    for key in ["Brand", "Fuel_Type", "Transmission", "Body_Type"]:
-        if key in prefs and isinstance(prefs[key], str):
-            prefs[key] = prefs[key].lower()
-
-    if "min_mileage" in prefs:
-        prefs["min_mileage"] = float(prefs["min_mileage"])
-
-    if "max_engine_cc" in prefs:
-        prefs["max_engine_cc"] = float(prefs["max_engine_cc"])
+    user_brand = prefs.get("Brand", "").lower()
 
     user_text = " ".join([
         prefs.get("Brand", ""),
         prefs.get("Fuel_Type", ""),
-        prefs.get("Transmission", ""),
         prefs.get("Body_Type", "")
-    ]).strip()
+    ]).lower()
 
-    if not user_text:
+    if not user_text.strip():
         user_text = "car"
 
+    # similarity
     user_vector = tfidf.transform([user_text])
-    scores = cosine_similarity(user_vector, car_tfidf_matrix)[0]
+    scores = cosine_similarity(user_vector, tfidf_matrix)[0]
 
     df_copy = df.copy()
-    df_copy["similarity_score"] = scores.astype(float)
+    df_copy["similarity_score"] = scores
 
-    df_filtered = apply_numeric_filters(df_copy, prefs)
+    # apply filters
+    df_filtered = mileage_filter(df_copy, prefs.get("Mileage"))
+    df_filtered = cc_filter(df_filtered, prefs.get("Engine_CC"))
+
     if df_filtered.empty:
         df_filtered = df_copy
 
+    # sort by similarity
     sorted_df = df_filtered.sort_values(
         by="similarity_score",
         ascending=False
     )
 
-    user_brand = prefs.get("Brand", "")
+    # -----------------------------
+    # TOP 2 SAME BRAND
+    # -----------------------------
+    same_brand = sorted_df[
+        sorted_df["Brand"] == user_brand
+    ].head(2)
 
-    first_choice = None
-    other_choices = []
+    # -----------------------------
+    # UNIQUE OTHER BRANDS
+    # -----------------------------
+    other_brands = sorted_df[
+        sorted_df["Brand"] != user_brand
+    ]
+
+    unique_brand_rows = []
+
     seen_brands = set()
 
-    for _, row in sorted_df.iterrows():
+    for _, row in other_brands.iterrows():
 
         brand = row["Brand"]
 
-        if brand == user_brand and first_choice is None:
-            first_choice = row
-            seen_brands.add(brand)
-            continue
-
-        if brand != user_brand and brand not in seen_brands:
-            other_choices.append(row)
+        if brand not in seen_brands:
+            unique_brand_rows.append(row)
             seen_brands.add(brand)
 
-        if len(other_choices) == top_n - 1:
+        if len(unique_brand_rows) == (top_n - len(same_brand)):
             break
 
-    final_rows = []
+    other_df = pd.DataFrame(unique_brand_rows)
 
-    if first_choice is not None:
-        final_rows.append(first_choice)
+    # -----------------------------
+    # FINAL RESULT
+    # -----------------------------
+    final_df = pd.concat([same_brand, other_df])
 
-    final_rows.extend(other_choices)
+    final_df = final_df.head(top_n)
 
-    result = pd.DataFrame(final_rows)
-
-    result = result.replace([np.inf, -np.inf], 0)
-    result = result.fillna("")
-
-    return result[[
-        "Car_ID", "Brand", "Model",
-        "Fuel_Type", "Transmission",
-        "Body_Type", "Mileage",
-        "Engine_CC", "similarity_score"
+    return final_df[[
+        "Car_ID",
+        "Brand",
+        "Model",
+        "Fuel_Type",
+        "Body_Type",
+        "Mileage",
+        "Engine_CC",
+        "similarity_score"
     ]].to_dict(orient="records")
