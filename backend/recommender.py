@@ -3,44 +3,26 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# -----------------------------
-# LOAD DATASET
-# -----------------------------
 df = pd.read_csv("../backend/dataset/car_rental_cbf.csv")
 
 df.fillna("", inplace=True)
 
-# -----------------------------
-# CONVERT NUMERIC COLUMNS
-# -----------------------------
 df["Mileage"] = pd.to_numeric(df["Mileage"], errors="coerce").fillna(0)
 df["Engine_CC"] = pd.to_numeric(df["Engine_CC"], errors="coerce").fillna(0)
 df["Year"] = pd.to_numeric(df["Year"], errors="coerce").fillna(0)
 
-# -----------------------------
-# NORMALIZE TEXT
-# -----------------------------
 for col in ["Brand", "Fuel_Type", "Body_Type"]:
     df[col] = df[col].astype(str).str.lower()
 
-# -----------------------------
-# COMBINED TEXT FEATURES
-# -----------------------------
 df["combined_text"] = (
     df["Brand"] + " " +
     df["Fuel_Type"] + " " +
     df["Body_Type"]
 )
 
-# -----------------------------
-# TFIDF MODEL
-# -----------------------------
 tfidf = TfidfVectorizer(stop_words="english")
 tfidf_matrix = tfidf.fit_transform(df["combined_text"])
 
-# -----------------------------
-# MILEAGE FILTER
-# -----------------------------
 def mileage_filter(dataframe, category):
 
     if category == "Low":
@@ -58,9 +40,6 @@ def mileage_filter(dataframe, category):
     return dataframe
 
 
-# -----------------------------
-# ENGINE FILTER
-# -----------------------------
 def cc_filter(dataframe, category):
 
     if category == "Low Power":
@@ -78,9 +57,6 @@ def cc_filter(dataframe, category):
     return dataframe
 
 
-# -----------------------------
-# MAIN RECOMMENDER
-# -----------------------------
 def recommend_cbf(prefs, top_n=5):
 
     user_brand = prefs.get("Brand", "").lower()
@@ -94,63 +70,41 @@ def recommend_cbf(prefs, top_n=5):
     if not user_text.strip():
         user_text = "car"
 
-    # -----------------------------
-    # TEXT SIMILARITY
-    # -----------------------------
     user_vector = tfidf.transform([user_text])
     similarity_scores = cosine_similarity(user_vector, tfidf_matrix)[0]
 
     df_copy = df.copy()
     df_copy["similarity_score"] = similarity_scores
 
-    # -----------------------------
-    # NUMERIC SCORING BOOST
-    # -----------------------------
     df_copy["numeric_score"] = (
         (df_copy["Mileage"] / df_copy["Mileage"].max()) * 0.3 +
         (df_copy["Engine_CC"] / df_copy["Engine_CC"].max()) * 0.2
     )
 
-    # final score
     df_copy["final_score"] = (
         df_copy["similarity_score"] * 0.7 +
         df_copy["numeric_score"] * 0.3
     )
 
-    # -----------------------------
-    # APPLY USER FILTERS
-    # -----------------------------
     df_filtered = mileage_filter(df_copy, prefs.get("Mileage"))
     df_filtered = cc_filter(df_filtered, prefs.get("Engine_CC"))
 
     if df_filtered.empty:
         df_filtered = df_copy
 
-    # -----------------------------
-    # REMOVE DUPLICATE MODELS
-    # -----------------------------
     df_filtered = df_filtered.drop_duplicates(
         subset=["Brand", "Model"]
     )
 
-    # -----------------------------
-    # SORT BY FINAL SCORE
-    # -----------------------------
     sorted_df = df_filtered.sort_values(
         by="final_score",
         ascending=False
     )
 
-    # -----------------------------
-    # SAME BRAND (LIMIT 2)
-    # -----------------------------
     same_brand = sorted_df[
         sorted_df["Brand"] == user_brand
     ].head(2)
 
-    # -----------------------------
-    # OTHER BRANDS
-    # -----------------------------
     other_brands = sorted_df[
         sorted_df["Brand"] != user_brand
     ]
@@ -171,9 +125,6 @@ def recommend_cbf(prefs, top_n=5):
 
     other_df = pd.DataFrame(unique_rows)
 
-    # -----------------------------
-    # FINAL RESULT
-    # -----------------------------
     final_df = pd.concat([same_brand, other_df])
 
     final_df = final_df.drop_duplicates(
@@ -182,9 +133,6 @@ def recommend_cbf(prefs, top_n=5):
 
     final_df = final_df.head(top_n)
 
-    # -----------------------------
-    # RETURN RESULTS
-    # -----------------------------
     return final_df[[
         "Car_ID",
         "Brand",

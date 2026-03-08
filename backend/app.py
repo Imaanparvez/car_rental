@@ -18,9 +18,7 @@ CORS(app)
 logging.basicConfig(level=logging.DEBUG)
 
 
-# -----------------------------
-# CHECK EXISTING USER
-# -----------------------------
+
 def is_existing_user(user_id):
 
     count = interactions_col.count_documents({
@@ -30,9 +28,7 @@ def is_existing_user(user_id):
     return count >= 3
 
 
-# -----------------------------
-# PRICE FORMULA
-# -----------------------------
+
 def calculate_price(cc, days):
 
     base_price = 800
@@ -45,9 +41,7 @@ def calculate_price(cc, days):
     return round(total_price, 2)
 
 
-# -----------------------------
-# LOGIN
-# -----------------------------
+
 @app.route("/api/login", methods=["POST"])
 def api_login():
 
@@ -64,9 +58,7 @@ def api_login():
     return jsonify({"user": user})
 
 
-# -----------------------------
-# SIGNUP
-# -----------------------------
+
 @app.route("/api/signup", methods=["POST"])
 def api_signup():
 
@@ -82,9 +74,6 @@ def api_signup():
     return jsonify({"success": ok})
 
 
-# -----------------------------
-# GET ALL CARS
-# -----------------------------
 @app.route("/api/cars", methods=["GET"])
 def api_cars():
 
@@ -96,9 +85,7 @@ def api_cars():
     return jsonify(cars)
 
 
-# -----------------------------
-# RECOMMENDATION
-# -----------------------------
+
 @app.route("/api/recommend", methods=["POST"])
 def api_recommend():
 
@@ -121,9 +108,7 @@ def api_recommend():
     })
 
 
-# -----------------------------
-# USER BOOKINGS
-# -----------------------------
+
 @app.route("/api/user-bookings/<user_id>", methods=["GET"])
 def user_bookings(user_id):
 
@@ -160,9 +145,7 @@ def user_bookings(user_id):
     return jsonify(output)
 
 
-# -----------------------------
-# INTERACTION LOGGER
-# -----------------------------
+
 @app.route("/api/interact", methods=["POST"])
 def api_interact():
 
@@ -178,7 +161,7 @@ def api_interact():
         "timestamp": datetime.utcnow()
     }
 
-    # Add car_id if provided
+    
     if car_id:
         try:
             doc["car_id"] = ObjectId(car_id)
@@ -190,9 +173,7 @@ def api_interact():
     return jsonify({"success": True})
 
 
-# -----------------------------
-# BOOK CAR
-# -----------------------------
+
 @app.route("/api/book", methods=["POST"])
 def api_book():
 
@@ -219,17 +200,13 @@ def api_book():
         return jsonify({"success": False})
 
 
-# -----------------------------
-# HOME
-# -----------------------------
+
 @app.route("/")
 def home():
     return jsonify({"status": "Flask backend running"})
 
 
-# -----------------------------
-# RUN SERVER
-# -----------------------------
+
 if __name__ == "__main__":
 
     port = int(os.environ.get("PORT", 5000))

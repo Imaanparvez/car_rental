@@ -4,7 +4,6 @@ import pandas as pd
 
 def seed_cars():
 
-    # load dataset
     df = pd.read_csv("./dataset/car_rental_cleaned.csv")
 
     inserted = 0
@@ -24,7 +23,6 @@ def seed_cars():
             "image": row.get("image", "")
         }
 
-        # prevent duplicate insert
         exists = cars_col.find_one({
             "Brand": car["Brand"],
             "Model": car["Model"]

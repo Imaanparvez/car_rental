@@ -198,7 +198,6 @@ with st.sidebar:
 
 def home_page():
 
-    # Hero Banner
     st.markdown("""
     <div style="
         position: relative;

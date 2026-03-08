@@ -2,9 +2,6 @@ from db import interactions_col
 from datetime import datetime
 
 
-# -----------------------------------
-# GENERAL USER INTERACTIONS
-# -----------------------------------
 def log_interaction(user_id, car_id=None, action="view"):
 
     allowed_actions = ["view", "book", "search"]
@@ -24,9 +21,6 @@ def log_interaction(user_id, car_id=None, action="view"):
     interactions_col.insert_one(doc)
 
 
-# -----------------------------------
-# BOOKING INTERACTION
-# -----------------------------------
 def log_booking_interaction(user_id, car_id):
 
     interactions_col.insert_one({

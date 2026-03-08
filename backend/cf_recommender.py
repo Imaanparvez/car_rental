@@ -18,9 +18,6 @@ def recommend_cf(user_id, top_n=3):
     df["user_id"] = df["user_id"].astype(str)
     df["car_id"] = df["car_id"].astype(str)
 
-    # -----------------------------
-    # USER ITEM MATRIX
-    # -----------------------------
     matrix = pd.crosstab(df["user_id"], df["car_id"])
 
     if str(user_id) not in matrix.index:
@@ -37,9 +34,6 @@ def recommend_cf(user_id, top_n=3):
     if len(similar_users) == 0:
         return []
 
-    # -----------------------------
-    # FIND CARS LIKED BY SIMILAR USERS
-    # -----------------------------
     recommended = {}
 
     for sim_user in similar_users.index:
