@@ -426,12 +426,12 @@ def preferences_page():
 # -----------------------------
 def book_page():
 
-    st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🚗 Dashboard</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>Dashboard</h1>", unsafe_allow_html=True)
 
     cars = safe_get(f"{BACKEND_URL}/api/cars")
 
     with st.container(border=True):
-        st.markdown("### 🔍 Search Cars")
+        st.markdown("###Search Cars")
         search = st.text_input("Search by brand or model", placeholder="e.g. Toyota, Honda")
         st.write("")
 
@@ -530,7 +530,7 @@ def book_page():
                         st.session_state["page"]="payment"
                         st.rerun()
 
-    st.markdown('<h3 class="center-title">🕒 Your Booking History</h3>', unsafe_allow_html=True)
+    st.markdown('<h3 class="center-title">Your Booking History</h3>', unsafe_allow_html=True)
     
     user_id = st.session_state["user"].get("_id") if st.session_state.get("user") else None
     if user_id:
@@ -742,4 +742,5 @@ elif st.session_state["page"] == "confirmation":
 elif st.session_state["page"] == "contact":
 
     contact_page()
+
 
