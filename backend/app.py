@@ -113,20 +113,7 @@ def api_recommend():
 
     if user_id and is_existing_user(user_id):
 
-        cf_ids = recommend_cf(ObjectId(user_id), top_n=2)
-
-        cars = get_all_cars()
-
-        for cid in cf_ids:
-
-            for car in cars:
-
-                if str(car["_id"]) == str(cid):
-
-                    car["_id"] = str(car["_id"])
-                    car["reason"] = "Users with similar taste also liked this"
-
-                    cf_cars.append(car)
+        cf_cars = recommend_cf(ObjectId(user_id), top_n=2)
 
     return jsonify({
         "cbf": cbf_cars,

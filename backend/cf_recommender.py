@@ -1,5 +1,6 @@
 import pandas as pd
 from db import interactions_col, cars_col
+from bson import ObjectId
 
 
 def recommend_cf(user_id, top_n=3):
@@ -66,7 +67,7 @@ def recommend_cf(user_id, top_n=3):
 
     for car_id, count in sorted_cars:
 
-        car = cars_col.find_one({"_id": car_id})
+        car = cars_col.find_one({"_id": ObjectId(car_id)})
 
         if not car:
             continue
