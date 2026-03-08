@@ -8,9 +8,6 @@ BACKEND_URL = os.environ.get("BACKEND_URL", "http://127.0.0.1:5000")
 
 st.set_page_config(page_title="AI Car Rental", layout="wide")
 
-# -----------------------------
-# GLOBAL CSS
-# -----------------------------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
@@ -98,9 +95,6 @@ color:#111;
 """, unsafe_allow_html=True)
 
 
-# -----------------------------
-# SESSION STATE
-# -----------------------------
 if "user" not in st.session_state:
     st.session_state["user"] = None
 
@@ -120,9 +114,7 @@ if "booking_success" not in st.session_state:
     st.session_state["booking_success"] = False
 
 
-# -----------------------------
-# API HELPERS
-# -----------------------------
+
 def safe_post(url, payload):
     try:
         r = requests.post(url, json=payload)
@@ -143,9 +135,7 @@ def safe_get(url):
     return None
 
 
-# -----------------------------
-# ACTION LOGGER
-# -----------------------------
+
 def log_interaction(car_id, action):
 
     if st.session_state["user"] is None:
@@ -164,9 +154,7 @@ def log_interaction(car_id, action):
         pass
 
 
-# -----------------------------
-# SIDEBAR
-# -----------------------------
+
 with st.sidebar:
 
     st.markdown("## AI Car Rental")
@@ -207,9 +195,7 @@ with st.sidebar:
             st.rerun()
 
 
-# -----------------------------
-# HOME PAGE
-# -----------------------------
+
 def home_page():
 
     # Hero Banner
@@ -264,7 +250,7 @@ def home_page():
     st.write("")
     st.write("")
     
-    # Why Choose Us Section
+  
     st.markdown("<h2 style='text-align: center; margin-bottom: 40px;'>Why Choose Premium AI Rentals?</h2>", unsafe_allow_html=True)
     
     c1, c2, c3 = st.columns(3)
@@ -291,7 +277,7 @@ def home_page():
     st.write("")
     st.divider()
 
-    # Metrics Section
+
     m1, m2, m3 = st.columns(3)
     m1.metric(label="Cars Available", value="500+", delta="Growing daily")
     m2.metric(label="Active Users", value="10k+", delta="12% this month")
@@ -300,7 +286,7 @@ def home_page():
     st.write("")
     st.divider()
 
-    # Footer
+  
     st.markdown("""
     <div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">
         <p>© 2026 AI Premium Car Rentals. All rights reserved.</p>
@@ -309,9 +295,7 @@ def home_page():
     """, unsafe_allow_html=True)
 
 
-# -----------------------------
-# LOGIN PAGE
-# -----------------------------
+
 def login_page():
 
     st.markdown("<h1 style='text-align: center;'>Login / Sign Up</h1>", unsafe_allow_html=True)
@@ -368,12 +352,10 @@ def login_page():
                         st.success("Account created successfully. Please login.")
 
 
-# -----------------------------
-# PREFERENCES PAGE
-# -----------------------------
+
 def preferences_page():
 
-    st.markdown("<h1 style='text-align: center;'>🎛 Choose Your Preferences</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>Choose Your Preferences</h1>", unsafe_allow_html=True)
     st.write("")
 
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -421,9 +403,7 @@ def preferences_page():
                     st.rerun()
 
 
-# -----------------------------
-# BOOK DASHBOARD
-# -----------------------------
+
 def book_page():
 
     st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>Dashboard</h1>", unsafe_allow_html=True)
@@ -431,7 +411,7 @@ def book_page():
     cars = safe_get(f"{BACKEND_URL}/api/cars")
 
     with st.container(border=True):
-        st.markdown("###Search Cars")
+        st.markdown("Search Cars")
         search = st.text_input("Search by brand or model", placeholder="e.g. Toyota, Honda")
         st.write("")
 
@@ -543,9 +523,6 @@ def book_page():
             st.info("You don't have any past bookings yet.")
 
 
-# -----------------------------
-# PAYMENT PAGE
-# -----------------------------
 def payment_page():
 
     car = st.session_state["selected_car"]
@@ -589,9 +566,7 @@ def payment_page():
 
             st.write("")
             
-            # -----------------------------
-            # CONFIRM PAYMENT BUTTON
-            # -----------------------------
+          
             if st.button("Confirm Booking"):
 
                 car_id = car.get("_id") or car.get("Car_ID")
@@ -623,9 +598,7 @@ def payment_page():
                 except Exception as e:
                     st.error(f"Error: {e}")
 
-# -----------------------------
-# CONFIRMATION PAGE
-# -----------------------------
+
 def confirmation_page():
 
     car = st.session_state["selected_car"]
@@ -649,12 +622,10 @@ def confirmation_page():
             st.rerun()
 
 
-# -----------------------------
-# CONTACT PAGE
-# -----------------------------
+
 def contact_page():
 
-    # Contact Us Hero Banner
+
     st.markdown("""
     <div style="
         position: relative;
@@ -718,9 +689,7 @@ def contact_page():
                     st.error("Please fill out all fields before submitting.")
 
 
-# -----------------------------
-# ROUTING
-# -----------------------------
+
 if st.session_state["page"] == "home":
     home_page()
 
@@ -742,5 +711,6 @@ elif st.session_state["page"] == "confirmation":
 elif st.session_state["page"] == "contact":
 
     contact_page()
+
 
 
